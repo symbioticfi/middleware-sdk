@@ -1,17 +1,39 @@
 {
-  "name": "symbiotic-tests",
-  "version": "1.0.0",
-  "description": "Test helpers for Symbiotic protocol",
-  "private": true,
-  "scripts": {
-    "testgen": "node test/helpers/ed25519TestGenerator.js"
+  "name": "@symbioticfi/middleware-sdk",
+  "version": "0.0.1",
+  "description": "Symbiotic Middleware SDK is a framework for developing middleware contracts that represent your network's logic in a modular and extensible way.",
+  "homepage": "https://symbiotic.fi/",
+  "bugs": "https://github.com/symbioticfi/middleware-sdk/issues",
+  "license": "MIT",
+  "author": "Symbiotic Team",
+  "files": [
+    "src/**/*",
+    "test/mocks/**/*",
+    "out/**/*.json"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/symbioticfi/middleware-sdk.git"
   },
+  "keywords": [
+    "solidity",
+    "ethereum",
+    "smart",
+    "contracts",
+    "security"
+  ],
   "dependencies": {
-    "@noble/curves": "^1.3.0",
-    "ethereum-cryptography": "^2.1.3",
-    "ethers": "^6.11.1"
+    "@openzeppelin/contracts": "5.1.0",
+    "@openzeppelin/contracts-upgradeable": "5.1.0",
+    "@symbioticfi/core": "1.0.0-devnet.9",
+    "@noble/curves": "1.3.0",
+    "ethereum-cryptography": "2.1.3",
+    "ethers": "6.11.1"
   },
   "engines": {
     "node": ">=18.0.0"
+  },
+  "scripts": {
+    "testgen": "node test/helpers/ed25519TestGenerator.js"
   }
 }
