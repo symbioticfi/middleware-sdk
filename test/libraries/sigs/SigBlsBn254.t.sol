@@ -62,8 +62,13 @@ contract SigBlsBn254Test is Test {
         bytes memory keyBytes = KeyBlsBn254.wrap(BN254.G1Point(0, 0)).toBytes();
         bytes memory message = bytes("Hello, BLS!");
         bytes32 hashed = keccak256(message);
-        bytes memory signature = new bytes(65);
-        bool result = SigBlsBn254.verify(keyBytes, abi.encode(hashed), signature, "");
+        bytes memory signature = abi.encode(BN254.G1Point(0, 0));
+        bool result = SigBlsBn254.verify(
+            keyBytes,
+            abi.encode(hashed),
+            signature,
+            abi.encode(BN254.G2Point([uint256(0), uint256(0)], [uint256(0), uint256(0)]))
+        );
         assertFalse(result);
 
         result = SigBlsBn254.verify(

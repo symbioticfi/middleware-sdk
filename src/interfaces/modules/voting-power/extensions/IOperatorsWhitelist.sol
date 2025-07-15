@@ -10,11 +10,6 @@ interface IOperatorsWhitelist {
     error OperatorsWhitelist_OperatorNotWhitelisted();
 
     /**
-     * @notice The error thrown when the operator is already whitelisted.
-     */
-    error OperatorsWhitelist_OperatorAlreadyWhitelisted();
-
-    /**
      * @notice The storage of the OperatorsWhitelist contract.
      * @param _whitelisted The mapping from the operator to the whitelisted operator status.
      * @param _isWhitelistEnabled The status of the whitelist.

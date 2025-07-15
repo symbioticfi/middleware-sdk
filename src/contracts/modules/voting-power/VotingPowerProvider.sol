@@ -54,6 +54,13 @@ abstract contract VotingPowerProvider is
     /**
      * @inheritdoc IVotingPowerProvider
      */
+    function getSlashingWindowAt(uint48 timestamp, bytes memory hint) public view virtual returns (uint48) {
+        return VotingPowerProviderLogic.getSlashingWindowAt(timestamp, hint);
+    }
+
+    /**
+     * @inheritdoc IVotingPowerProvider
+     */
     function getSlashingWindow() public view virtual returns (uint48) {
         return VotingPowerProviderLogic.getSlashingWindow();
     }
@@ -346,7 +353,7 @@ abstract contract VotingPowerProvider is
      */
     function registerOperatorWithSignature(address operator, bytes memory signature) public virtual {
         _verifyEIP712(
-            operator, keccak256(abi.encode(REGISTER_OPERATOR_TYPEHASH, operator, _useNonce(operator))), signature
+            operator, keccak256(abi.encode(REGISTER_OPERATOR_TYPEHASH, operator, nonces(operator))), signature
         );
         _registerOperatorImpl(operator);
     }
@@ -355,7 +362,7 @@ abstract contract VotingPowerProvider is
      * @inheritdoc IVotingPowerProvider
      */
     function unregisterOperator() public virtual {
-        _unregisterOperator(msg.sender);
+        _unregisterOperatorImpl(msg.sender);
     }
 
     /**
@@ -363,9 +370,9 @@ abstract contract VotingPowerProvider is
      */
     function unregisterOperatorWithSignature(address operator, bytes memory signature) public virtual {
         _verifyEIP712(
-            operator, keccak256(abi.encode(UNREGISTER_OPERATOR_TYPEHASH, operator, _useNonce(operator))), signature
+            operator, keccak256(abi.encode(UNREGISTER_OPERATOR_TYPEHASH, operator, nonces(operator))), signature
         );
-        _unregisterOperator(operator);
+        _unregisterOperatorImpl(operator);
     }
 
     /**
@@ -429,6 +436,22 @@ abstract contract VotingPowerProvider is
         address operator
     ) internal virtual {
         _registerOperator(operator);
+        _useNonce(operator);
+    }
+
+    function _unregisterOperatorImpl(
+        address operator
+    ) internal virtual {
+        _unregisterOperator(operator);
+        _useNonce(operator);
+    }
+
+    function _registerOperatorVaultImpl(address operator, address vault) internal virtual {
+        _registerOperatorVault(operator, vault);
+    }
+
+    function _unregisterOperatorVaultImpl(address operator, address vault) internal virtual {
+        _unregisterOperatorVault(operator, vault);
     }
 
     function _verifyEIP712(address operator, bytes32 structHash, bytes memory signature) internal view {

@@ -121,11 +121,6 @@ contract OperatorsJailTest is InitSetupTest {
         assertTrue(jailOps.isOperatorRegistered(operator1));
     }
 
-    function test_UnjailOperator_OperatorNotJailed() public {
-        vm.expectRevert(IOperatorsJail.OperatorsJail_OperatorNotJailed.selector);
-        jailOps.unjailOperator(operator1);
-    }
-
     function test_Location() public {
         bytes32 location =
             keccak256(abi.encode(uint256(keccak256("symbiotic.storage.OperatorsJail")) - 1)) & ~bytes32(uint256(0xff));

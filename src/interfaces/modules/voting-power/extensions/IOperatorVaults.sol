@@ -17,4 +17,13 @@ interface IOperatorVaults {
      * @dev The caller must have the needed permission.
      */
     function unregisterOperatorVault(address operator, address vault) external;
+
+    /**
+     * @notice Unregisters the operator vault.
+     * @param vault The address of the vault.
+     * @dev The caller must be the operator of the vault.
+     */
+    function unregisterOperatorVault(
+        address vault
+    ) external;
 }

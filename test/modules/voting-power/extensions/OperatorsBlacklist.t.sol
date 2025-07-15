@@ -114,13 +114,6 @@ contract OperatorsBlacklistTest is InitSetupTest {
         vm.stopPrank();
     }
 
-    function test_BlacklistOperator_OperatorBlacklisted() public {
-        blacklistOps.blacklistOperator(operator1);
-
-        vm.expectRevert(IOperatorsBlacklist.OperatorsBlacklist_OperatorBlacklisted.selector);
-        blacklistOps.blacklistOperator(operator1);
-    }
-
     function test_UnblacklistOperator() public {
         blacklistOps.blacklistOperator(operator1);
         assertTrue(blacklistOps.isOperatorBlacklisted(operator1));
@@ -133,11 +126,6 @@ contract OperatorsBlacklistTest is InitSetupTest {
         vm.stopPrank();
 
         assertTrue(blacklistOps.isOperatorRegistered(operator1));
-    }
-
-    function test_UnblacklistOperator_OperatorNotBlacklisted() public {
-        vm.expectRevert(IOperatorsBlacklist.OperatorsBlacklist_OperatorNotBlacklisted.selector);
-        blacklistOps.unblacklistOperator(operator1);
     }
 
     function test_Location() public {

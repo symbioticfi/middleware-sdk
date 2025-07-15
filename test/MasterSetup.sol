@@ -162,6 +162,8 @@ contract MasterSetupTest is InitSetupTest {
                 vars.deployer.addr
             );
         }
+
+        masterSetupParams.settlement.grantRole(masterSetupParams.settlement.SET_GENESIS_ROLE(), vars.deployer.addr);
         vm.stopPrank();
 
         vm.startPrank(vars.deployer.addr);

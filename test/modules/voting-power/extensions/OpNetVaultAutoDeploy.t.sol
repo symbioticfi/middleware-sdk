@@ -51,6 +51,13 @@ contract TestOpNetVaultAutoDeploy is
         super._registerOperatorImpl(operator);
     }
 
+    function _unregisterOperatorVaultImpl(
+        address operator,
+        address vault
+    ) internal override(OpNetVaultAutoDeploy, VotingPowerProvider) {
+        super._unregisterOperatorVaultImpl(operator, vault);
+    }
+
     function setSlashingWindow(
         uint48 slashingWindow
     ) public {
@@ -206,7 +213,16 @@ contract OpNetVaultAutoDeployTest is Test, InitSetupTest {
         vm.stopPrank();
         address v2 = deployer.getAutoDeployedVault(operator1);
         assertEq(v, v2);
+        vaults = deployer.getOperatorVaults(operator1);
         assertEq(vaults.length, 1);
+
+        vm.startPrank(operator1);
+        deployer.unregisterOperatorVault(operator1, v);
+        vm.stopPrank();
+        address v3 = deployer.getAutoDeployedVault(operator1);
+        assertEq(v3, address(0));
+        vaults = deployer.getOperatorVaults(operator1);
+        assertEq(vaults.length, 0);
     }
 
     function test_AutoDeployOnRegister_WithoutSlasher() public {

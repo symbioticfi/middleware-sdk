@@ -81,11 +81,17 @@ contract EpochManagerTest is Test {
         vm.expectRevert(ERR_NO_CHECKPOINT);
         epochManager.getCurrentEpoch();
 
-        uint48 startTime = uint48(vm.getBlockTimestamp());
+        uint48 startTime = uint48(vm.getBlockTimestamp()) + 200;
         IEpochManager.EpochManagerInitParams memory initParams =
             IEpochManager.EpochManagerInitParams({epochDuration: 100, epochDurationTimestamp: startTime});
 
         epochManager.initialize(initParams);
+
+        assertEq(epochManager.getNextEpoch(), 0);
+        assertEq(epochManager.getNextEpochStart(), startTime);
+        assertEq(epochManager.getNextEpochDuration(), 100);
+
+        vm.warp(startTime);
 
         uint48 currentEpoch = epochManager.getCurrentEpoch();
         assertEq(currentEpoch, 0, "Initially, epoch should be 0 if we haven't reached startTime");
@@ -191,6 +197,18 @@ contract EpochManagerTest is Test {
             epochDurationTimestamp: uint48(vm.getBlockTimestamp() + 10)
         });
         epochManager.initialize(initParams);
+
+        assertEq(epochManager.getNextEpoch(), 0);
+        assertEq(epochManager.getNextEpochStart(), uint48(vm.getBlockTimestamp() + 10));
+        assertEq(epochManager.getNextEpochDuration(), 50);
+
+        epochManager.setEpochDuration(200);
+
+        assertEq(epochManager.getNextEpoch(), 0);
+        assertEq(epochManager.getNextEpochStart(), uint48(vm.getBlockTimestamp() + 10));
+        assertEq(epochManager.getNextEpochDuration(), 200);
+
+        epochManager.setEpochDuration(50);
 
         uint48 startTime = initParams.epochDurationTimestamp;
         vm.warp(startTime + 120);

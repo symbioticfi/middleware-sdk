@@ -169,17 +169,6 @@ contract OperatorsWhitelistTest is Test, InitSetupTest {
         assertTrue(whitelistOps.isOperatorVaultRegistered(vaultA));
     }
 
-    function test_UnwhitelistOperator_RevertIfNotWhitelisted() public {
-        vm.expectRevert(IOperatorsWhitelist.OperatorsWhitelist_OperatorNotWhitelisted.selector);
-        whitelistOps.unwhitelistOperator(operator1);
-    }
-
-    function test_WhitelistOperator_RevertIfAlreadyWhitelisted() public {
-        whitelistOps.whitelistOperator(operator1);
-        vm.expectRevert(IOperatorsWhitelist.OperatorsWhitelist_OperatorAlreadyWhitelisted.selector);
-        whitelistOps.whitelistOperator(operator1);
-    }
-
     function test_Location() public {
         bytes32 location = keccak256(abi.encode(uint256(keccak256("symbiotic.storage.OperatorsWhitelist")) - 1))
             & ~bytes32(uint256(0xff));

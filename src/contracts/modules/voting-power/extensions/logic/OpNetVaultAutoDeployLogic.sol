@@ -94,6 +94,10 @@ library OpNetVaultAutoDeployLogic {
         (vault, delegator, slasher) = createVault(
             version, address(0), vaultParams, delegatorIndex, delegatorParams, withSlasher, slasherIndex, slasherParams
         );
+        setAutoDeployedVault(operator, vault);
+    }
+
+    function setAutoDeployedVault(address operator, address vault) public {
         _getOpNetVaultAutoDeployStorage()._autoDeployedVault[operator] = vault;
     }
 

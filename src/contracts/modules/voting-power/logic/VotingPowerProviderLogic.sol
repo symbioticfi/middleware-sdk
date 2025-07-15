@@ -55,15 +55,18 @@ library VotingPowerProviderLogic {
     function initialize(
         IVotingPowerProvider.VotingPowerProviderInitParams memory initParams
     ) public {
-        _getVotingPowerProviderStorage()._slashingWindow = initParams.slashingWindow;
-        emit IVotingPowerProvider.SetSlashingWindow(initParams.slashingWindow);
+        setSlashingWindowInternal(initParams.slashingWindow);
         if (initParams.token != address(0)) {
             registerToken(initParams.token);
         }
     }
 
+    function getSlashingWindowAt(uint48 timestamp, bytes memory hint) public view returns (uint48) {
+        return uint48(_getVotingPowerProviderStorage()._slashingWindow.upperLookupRecent(timestamp, hint));
+    }
+
     function getSlashingWindow() public view returns (uint48) {
-        return _getVotingPowerProviderStorage()._slashingWindow;
+        return uint48(_getVotingPowerProviderStorage()._slashingWindow.latest());
     }
 
     function isTokenRegisteredAt(address token, uint48 timestamp, bytes memory hint) public view returns (bool) {
@@ -374,7 +377,13 @@ library VotingPowerProviderLogic {
         if (slashingWindow >= getSlashingWindow()) {
             revert IVotingPowerProvider.VotingPowerProvider_SlashingWindowTooLarge();
         }
-        _getVotingPowerProviderStorage()._slashingWindow = slashingWindow;
+        setSlashingWindowInternal(slashingWindow);
+    }
+
+    function setSlashingWindowInternal(
+        uint48 slashingWindow
+    ) public {
+        _getVotingPowerProviderStorage()._slashingWindow.push(Time.timestamp(), slashingWindow);
 
         emit IVotingPowerProvider.SetSlashingWindow(slashingWindow);
     }

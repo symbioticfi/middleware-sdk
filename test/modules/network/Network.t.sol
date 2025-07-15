@@ -263,7 +263,7 @@ contract NetworkTest is MasterSetupTest {
 
     function test_GetMinDelayInvalidSelectorReverts() public {
         vm.expectRevert(INetwork.InvalidDataLength.selector);
-        myNetwork.getMinDelay(address(0), "");
+        myNetwork.getMinDelay(address(0), new bytes(1));
     }
 
     function test_ScheduleBatchLengthMismatchReverts() public {

@@ -362,6 +362,9 @@ abstract contract Settlement is NetworkManager, OzEIP712, PermissionManager, ISe
         mapping(bytes32 key => bytes32 value) storage extraDataStorage = $._extraData[header.epoch];
         uint256 extraDataLength = extraData.length;
         for (uint256 i; i < extraDataLength; ++i) {
+            if (extraDataStorage[extraData[i].key] != bytes32(0)) {
+                revert Settlement_DuplicateExtraDataKey();
+            }
             extraDataStorage[extraData[i].key] = extraData[i].value;
         }
 

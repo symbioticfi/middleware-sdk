@@ -296,6 +296,9 @@ contract Network is TimelockControllerUpgradeable, INetwork {
     function _getSelector(
         bytes memory data
     ) internal pure returns (bytes4 selector) {
+        if (data.length == 0) {
+            return 0xEEEEEEEE;
+        }
         if (data.length < 4) {
             revert InvalidDataLength();
         }

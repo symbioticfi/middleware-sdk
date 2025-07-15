@@ -3,6 +3,7 @@ pragma solidity ^0.8.0;
 
 import {INetworkManager} from "../base/INetworkManager.sol";
 import {IOzEIP712} from "../base/IOzEIP712.sol";
+import {Checkpoints} from "../../../contracts/libraries/structs/Checkpoints.sol";
 
 import {PersistentSet} from "../../../contracts/libraries/structs/PersistentSet.sol";
 
@@ -116,7 +117,7 @@ interface IVotingPowerProvider {
         PersistentSet.AddressSet _sharedVaults;
         PersistentSet.AddressSet _allOperatorVaults;
         mapping(address operator => PersistentSet.AddressSet set) _operatorVaults;
-        uint48 _slashingWindow;
+        Checkpoints.Trace208 _slashingWindow;
     }
 
     /**
@@ -239,6 +240,14 @@ interface IVotingPowerProvider {
      * @return The address of the VaultFactory contract.
      */
     function VAULT_FACTORY() external view returns (address);
+
+    /**
+     * @notice Returns the slashing window at a specific timestamp.
+     * @param timestamp The timestamp.
+     * @param hint The hint.
+     * @return The slashing window.
+     */
+    function getSlashingWindowAt(uint48 timestamp, bytes memory hint) external view returns (uint48);
 
     /**
      * @notice Returns the slashing window.

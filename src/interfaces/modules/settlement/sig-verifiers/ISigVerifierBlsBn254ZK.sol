@@ -5,6 +5,11 @@ import {ISigVerifier} from "./ISigVerifier.sol";
 
 interface ISigVerifierBlsBn254ZK is ISigVerifier {
     /**
+     * @notice Reverts when the message length is invalid.
+     */
+    error SigVerifierBlsBn254ZK_InvalidMessageLength();
+
+    /**
      * @notice Reverts when the number of verifiers and max validators is not the same or zero.
      */
     error SigVerifierBlsBn254ZK_InvalidLength();
