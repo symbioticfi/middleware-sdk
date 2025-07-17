@@ -258,10 +258,10 @@ contract MasterSetupScript is InitSetupScript {
         for (uint256 i; i < networkSetupParams.OPERATORS_TO_REGISTER; ++i) {
             Vm.Wallet memory operator = getOperator(i);
             uint256 operatorVotingPower;
-            IVotingPowerProvider.VaultVotingPower[] memory operatorVotingPowers =
+            IVotingPowerProvider.VaultValue[] memory operatorVotingPowers =
                 masterSetupParams.votingPowerProvider.getOperatorVotingPowers(operator.addr, new bytes(0));
             for (uint256 j; j < operatorVotingPowers.length; ++j) {
-                operatorVotingPower += operatorVotingPowers[j].votingPower;
+                operatorVotingPower += operatorVotingPowers[j].value;
             }
             console2.log("  ", operator.addr);
             console2.log("      Voting power: ", operatorVotingPower);

@@ -30,9 +30,6 @@ contract TestOperatorsBlacklist is
         IVotingPowerProvider.VotingPowerProviderInitParams memory votingPowerProviderInit
     ) external initializer {
         __VotingPowerProvider_init(votingPowerProviderInit);
-        __OperatorVaults_init();
-
-        __OperatorsBlacklist_init();
     }
 
     function _registerOperatorImpl(

@@ -18,7 +18,6 @@ import {IDefaultOperatorRewards} from
 
 import {EnumerableMap} from "@openzeppelin/contracts/utils/structs/EnumerableMap.sol";
 import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
-import {Time} from "@openzeppelin/contracts/utils/types/Time.sol";
 
 import {Checkpoints} from "../../../libraries/structs/Checkpoints.sol";
 import {PersistentSet} from "../../../libraries/structs/PersistentSet.sol";
@@ -69,8 +68,8 @@ library VotingPowerProviderLogic {
         return uint48(_getVotingPowerProviderStorage()._slashingWindow.latest());
     }
 
-    function isTokenRegisteredAt(address token, uint48 timestamp, bytes memory hint) public view returns (bool) {
-        return _getVotingPowerProviderStorage()._tokens.containsAt(timestamp, token, hint);
+    function isTokenRegisteredAt(address token, uint48 timestamp) public view returns (bool) {
+        return _getVotingPowerProviderStorage()._tokens.containsAt(timestamp, token);
     }
 
     function isTokenRegistered(
@@ -93,8 +92,8 @@ library VotingPowerProviderLogic {
         return _getVotingPowerProviderStorage()._tokens.length();
     }
 
-    function isOperatorRegisteredAt(address operator, uint48 timestamp, bytes memory hint) public view returns (bool) {
-        return _getVotingPowerProviderStorage()._operators.containsAt(timestamp, operator, hint);
+    function isOperatorRegisteredAt(address operator, uint48 timestamp) public view returns (bool) {
+        return _getVotingPowerProviderStorage()._operators.containsAt(timestamp, operator);
     }
 
     function isOperatorRegistered(
@@ -117,8 +116,8 @@ library VotingPowerProviderLogic {
         return _getVotingPowerProviderStorage()._operators.length();
     }
 
-    function isSharedVaultRegisteredAt(address vault, uint48 timestamp, bytes memory hint) public view returns (bool) {
-        return _getVotingPowerProviderStorage()._sharedVaults.containsAt(timestamp, vault, hint);
+    function isSharedVaultRegisteredAt(address vault, uint48 timestamp) public view returns (bool) {
+        return _getVotingPowerProviderStorage()._sharedVaults.containsAt(timestamp, vault);
     }
 
     function isSharedVaultRegistered(
@@ -141,12 +140,8 @@ library VotingPowerProviderLogic {
         return _getVotingPowerProviderStorage()._sharedVaults.length();
     }
 
-    function isOperatorVaultRegisteredAt(
-        address vault,
-        uint48 timestamp,
-        bytes memory hint
-    ) public view returns (bool) {
-        return _getVotingPowerProviderStorage()._allOperatorVaults.containsAt(timestamp, vault, hint);
+    function isOperatorVaultRegisteredAt(address vault, uint48 timestamp) public view returns (bool) {
+        return _getVotingPowerProviderStorage()._allOperatorVaults.containsAt(timestamp, vault);
     }
 
     function isOperatorVaultRegistered(
@@ -158,10 +153,9 @@ library VotingPowerProviderLogic {
     function isOperatorVaultRegisteredAt(
         address operator,
         address vault,
-        uint48 timestamp,
-        bytes memory hint
+        uint48 timestamp
     ) public view returns (bool) {
-        return _getVotingPowerProviderStorage()._operatorVaults[operator].containsAt(timestamp, vault, hint);
+        return _getVotingPowerProviderStorage()._operatorVaults[operator].containsAt(timestamp, vault);
     }
 
     function isOperatorVaultRegistered(address operator, address vault) public view returns (bool) {
@@ -184,45 +178,78 @@ library VotingPowerProviderLogic {
         return _getVotingPowerProviderStorage()._operatorVaults[operator].length();
     }
 
-    function getOperatorStakeAt(
-        address vault,
-        address operator,
-        uint48 timestamp,
-        bytes memory hints
-    ) public view returns (uint256) {
+    function getOperatorStakeAt(address operator, address vault, uint48 timestamp) public view returns (uint256) {
         return IBaseDelegator(IVault(vault).delegator()).stakeAt(
-            INetworkManager(address(this)).SUBNETWORK(), operator, timestamp, hints
+            INetworkManager(address(this)).SUBNETWORK(), operator, timestamp, new bytes(0)
         );
     }
 
-    function getOperatorStake(address vault, address operator) public view returns (uint256) {
+    function getOperatorStake(address operator, address vault) public view returns (uint256) {
         return IBaseDelegator(IVault(vault).delegator()).stake(INetworkManager(address(this)).SUBNETWORK(), operator);
+    }
+
+    function getOperatorStakesAt(
+        address operator,
+        uint48 timestamp
+    ) public view returns (IVotingPowerProvider.VaultValue[] memory vaultStakes) {
+        uint256 length;
+        address[] memory sharedVaults = getSharedVaultsAt(timestamp);
+        address[] memory operatorVaults = getOperatorVaultsAt(operator, timestamp);
+        vaultStakes = new IVotingPowerProvider.VaultValue[](sharedVaults.length + operatorVaults.length);
+        for (uint256 i; i < sharedVaults.length; ++i) {
+            uint256 stake = getOperatorStakeAt(operator, sharedVaults[i], timestamp);
+            if (stake > 0) {
+                vaultStakes[length++] = IVotingPowerProvider.VaultValue({vault: sharedVaults[i], value: stake});
+            }
+        }
+        for (uint256 i; i < operatorVaults.length; ++i) {
+            uint256 stake = getOperatorStakeAt(operator, operatorVaults[i], timestamp);
+            if (stake > 0) {
+                vaultStakes[length++] = IVotingPowerProvider.VaultValue({vault: operatorVaults[i], value: stake});
+            }
+        }
+
+        assembly ("memory-safe") {
+            mstore(vaultStakes, length)
+        }
+    }
+
+    function getOperatorStakes(
+        address operator
+    ) public view returns (IVotingPowerProvider.VaultValue[] memory vaultStakes) {
+        uint256 length;
+        address[] memory sharedVaults = getSharedVaults();
+        address[] memory operatorVaults = getOperatorVaults(operator);
+        vaultStakes = new IVotingPowerProvider.VaultValue[](sharedVaults.length + operatorVaults.length);
+        for (uint256 i; i < sharedVaults.length; ++i) {
+            uint256 stake = getOperatorStake(operator, sharedVaults[i]);
+            if (stake > 0) {
+                vaultStakes[length++] = IVotingPowerProvider.VaultValue({vault: sharedVaults[i], value: stake});
+            }
+        }
+        for (uint256 i; i < operatorVaults.length; ++i) {
+            uint256 stake = getOperatorStake(operator, operatorVaults[i]);
+            if (stake > 0) {
+                vaultStakes[length++] = IVotingPowerProvider.VaultValue({vault: operatorVaults[i], value: stake});
+            }
+        }
+
+        assembly ("memory-safe") {
+            mstore(vaultStakes, length)
+        }
     }
 
     function getOperatorVotingPowerAt(
         address operator,
         address vault,
         bytes memory extraData,
-        uint48 timestamp,
-        bytes memory hints
+        uint48 timestamp
     ) public view returns (uint256) {
-        IVotingPowerProvider.OperatorVaultVotingPowerHints memory operatorVaultVotingPowerHints;
-        if (hints.length > 0) {
-            operatorVaultVotingPowerHints = abi.decode(hints, (IVotingPowerProvider.OperatorVaultVotingPowerHints));
-        }
-
-        if (
-            !isTokenRegisteredAt(
-                IVault(vault).collateral(), timestamp, operatorVaultVotingPowerHints.isTokenRegisteredHint
-            )
-        ) {
+        if (!isTokenRegisteredAt(IVault(vault).collateral(), timestamp)) {
             return 0;
         }
         return IVotingPowerCalcManager(address(this)).stakeToVotingPowerAt(
-            vault,
-            getOperatorStakeAt(vault, operator, timestamp, operatorVaultVotingPowerHints.stakeHints),
-            extraData,
-            timestamp
+            vault, getOperatorStakeAt(operator, vault, timestamp), extraData, timestamp
         );
     }
 
@@ -235,7 +262,7 @@ library VotingPowerProviderLogic {
             return 0;
         }
         return IVotingPowerCalcManager(address(this)).stakeToVotingPower(
-            vault, getOperatorStake(vault, operator), extraData
+            vault, getOperatorStake(operator, vault), extraData
         );
     }
 
@@ -243,7 +270,7 @@ library VotingPowerProviderLogic {
         address operator,
         bytes memory extraData,
         uint48 timestamp
-    ) public view returns (IVotingPowerProvider.VaultVotingPower[] memory vaultVotingPowers) {
+    ) public view returns (IVotingPowerProvider.VaultValue[] memory vaultVotingPowers) {
         IVotingPowerProvider.OperatorVotingPowersExtraData memory operatorVotingPowersExtraData;
         if (extraData.length > 0) {
             operatorVotingPowersExtraData = abi.decode(extraData, (IVotingPowerProvider.OperatorVotingPowersExtraData));
@@ -252,35 +279,27 @@ library VotingPowerProviderLogic {
         uint256 length;
         address[] memory sharedVaults = getSharedVaultsAt(timestamp);
         address[] memory operatorVaults = getOperatorVaultsAt(operator, timestamp);
-        vaultVotingPowers = new IVotingPowerProvider.VaultVotingPower[](sharedVaults.length + operatorVaults.length);
+        vaultVotingPowers = new IVotingPowerProvider.VaultValue[](sharedVaults.length + operatorVaults.length);
         operatorVotingPowersExtraData.sharedVaultsExtraData =
             operatorVotingPowersExtraData.sharedVaultsExtraData.normalize(sharedVaults.length);
         for (uint256 i; i < sharedVaults.length; ++i) {
-            uint256 votingPower_ = getOperatorVotingPowerAt(
-                operator,
-                sharedVaults[i],
-                operatorVotingPowersExtraData.sharedVaultsExtraData[i],
-                timestamp,
-                new bytes(0)
+            uint256 votingPower = getOperatorVotingPowerAt(
+                operator, sharedVaults[i], operatorVotingPowersExtraData.sharedVaultsExtraData[i], timestamp
             );
-            if (votingPower_ > 0) {
+            if (votingPower > 0) {
                 vaultVotingPowers[length++] =
-                    IVotingPowerProvider.VaultVotingPower({vault: sharedVaults[i], votingPower: votingPower_});
+                    IVotingPowerProvider.VaultValue({vault: sharedVaults[i], value: votingPower});
             }
         }
         operatorVotingPowersExtraData.operatorVaultsExtraData =
             operatorVotingPowersExtraData.operatorVaultsExtraData.normalize(operatorVaults.length);
         for (uint256 i; i < operatorVaults.length; ++i) {
-            uint256 votingPower_ = getOperatorVotingPowerAt(
-                operator,
-                operatorVaults[i],
-                operatorVotingPowersExtraData.operatorVaultsExtraData[i],
-                timestamp,
-                new bytes(0)
+            uint256 votingPower = getOperatorVotingPowerAt(
+                operator, operatorVaults[i], operatorVotingPowersExtraData.operatorVaultsExtraData[i], timestamp
             );
-            if (votingPower_ > 0) {
+            if (votingPower > 0) {
                 vaultVotingPowers[length++] =
-                    IVotingPowerProvider.VaultVotingPower({vault: operatorVaults[i], votingPower: votingPower_});
+                    IVotingPowerProvider.VaultValue({vault: operatorVaults[i], value: votingPower});
             }
         }
 
@@ -292,7 +311,7 @@ library VotingPowerProviderLogic {
     function getOperatorVotingPowers(
         address operator,
         bytes memory extraData
-    ) public view returns (IVotingPowerProvider.VaultVotingPower[] memory vaultVotingPowers) {
+    ) public view returns (IVotingPowerProvider.VaultValue[] memory vaultVotingPowers) {
         IVotingPowerProvider.OperatorVotingPowersExtraData memory operatorVotingPowersExtraData;
         if (extraData.length > 0) {
             operatorVotingPowersExtraData = abi.decode(extraData, (IVotingPowerProvider.OperatorVotingPowersExtraData));
@@ -301,27 +320,27 @@ library VotingPowerProviderLogic {
         uint256 length;
         address[] memory sharedVaults = getSharedVaults();
         address[] memory operatorVaults = getOperatorVaults(operator);
-        vaultVotingPowers = new IVotingPowerProvider.VaultVotingPower[](sharedVaults.length + operatorVaults.length);
+        vaultVotingPowers = new IVotingPowerProvider.VaultValue[](sharedVaults.length + operatorVaults.length);
         operatorVotingPowersExtraData.sharedVaultsExtraData =
             operatorVotingPowersExtraData.sharedVaultsExtraData.normalize(sharedVaults.length);
         for (uint256 i; i < sharedVaults.length; ++i) {
-            uint256 votingPower_ = getOperatorVotingPower(
+            uint256 votingPower = getOperatorVotingPower(
                 operator, sharedVaults[i], operatorVotingPowersExtraData.sharedVaultsExtraData[i]
             );
-            if (votingPower_ > 0) {
+            if (votingPower > 0) {
                 vaultVotingPowers[length++] =
-                    IVotingPowerProvider.VaultVotingPower({vault: sharedVaults[i], votingPower: votingPower_});
+                    IVotingPowerProvider.VaultValue({vault: sharedVaults[i], value: votingPower});
             }
         }
         operatorVotingPowersExtraData.operatorVaultsExtraData =
             operatorVotingPowersExtraData.operatorVaultsExtraData.normalize(operatorVaults.length);
         for (uint256 i; i < operatorVaults.length; ++i) {
-            uint256 votingPower_ = getOperatorVotingPower(
+            uint256 votingPower = getOperatorVotingPower(
                 operator, operatorVaults[i], operatorVotingPowersExtraData.operatorVaultsExtraData[i]
             );
-            if (votingPower_ > 0) {
+            if (votingPower > 0) {
                 vaultVotingPowers[length++] =
-                    IVotingPowerProvider.VaultVotingPower({vault: operatorVaults[i], votingPower: votingPower_});
+                    IVotingPowerProvider.VaultValue({vault: operatorVaults[i], value: votingPower});
             }
         }
 
@@ -339,7 +358,7 @@ library VotingPowerProviderLogic {
         operatorVotingPowers = new IVotingPowerProvider.OperatorVotingPower[](operators.length);
         extraData = extraData.normalize(operators.length);
         for (uint256 i; i < operators.length; ++i) {
-            IVotingPowerProvider.VaultVotingPower[] memory votingPowers =
+            IVotingPowerProvider.VaultValue[] memory votingPowers =
                 getOperatorVotingPowersAt(operators[i], extraData[i], timestamp);
             if (votingPowers.length > 0) {
                 operatorVotingPowers[length++] =
@@ -359,8 +378,7 @@ library VotingPowerProviderLogic {
         operatorVotingPowers = new IVotingPowerProvider.OperatorVotingPower[](operators.length);
         extraData = extraData.normalize(operators.length);
         for (uint256 i; i < operators.length; ++i) {
-            IVotingPowerProvider.VaultVotingPower[] memory votingPowers =
-                getOperatorVotingPowers(operators[i], extraData[i]);
+            IVotingPowerProvider.VaultValue[] memory votingPowers = getOperatorVotingPowers(operators[i], extraData[i]);
             if (votingPowers.length > 0) {
                 operatorVotingPowers[length++] =
                     IVotingPowerProvider.OperatorVotingPower({operator: operators[i], vaults: votingPowers});
@@ -383,7 +401,7 @@ library VotingPowerProviderLogic {
     function setSlashingWindowInternal(
         uint48 slashingWindow
     ) public {
-        _getVotingPowerProviderStorage()._slashingWindow.push(Time.timestamp(), slashingWindow);
+        _getVotingPowerProviderStorage()._slashingWindow.push(uint48(block.timestamp), slashingWindow);
 
         emit IVotingPowerProvider.SetSlashingWindow(slashingWindow);
     }
@@ -394,7 +412,7 @@ library VotingPowerProviderLogic {
         if (token == address(0)) {
             revert IVotingPowerProvider.VotingPowerProvider_InvalidToken();
         }
-        if (!_getVotingPowerProviderStorage()._tokens.add(Time.timestamp(), token)) {
+        if (!_getVotingPowerProviderStorage()._tokens.add(uint48(block.timestamp), token)) {
             revert IVotingPowerProvider.VotingPowerProvider_TokenAlreadyIsRegistered();
         }
 
@@ -404,7 +422,7 @@ library VotingPowerProviderLogic {
     function unregisterToken(
         address token
     ) public {
-        if (!_getVotingPowerProviderStorage()._tokens.remove(Time.timestamp(), token)) {
+        if (!_getVotingPowerProviderStorage()._tokens.remove(uint48(block.timestamp), token)) {
             revert IVotingPowerProvider.VotingPowerProvider_TokenNotRegistered();
         }
 
@@ -418,7 +436,7 @@ library VotingPowerProviderLogic {
             revert IVotingPowerProvider.VotingPowerProvider_InvalidOperator();
         }
 
-        if (!_getVotingPowerProviderStorage()._operators.add(Time.timestamp(), operator)) {
+        if (!_getVotingPowerProviderStorage()._operators.add(uint48(block.timestamp), operator)) {
             revert IVotingPowerProvider.VotingPowerProvider_OperatorAlreadyRegistered();
         }
 
@@ -428,7 +446,7 @@ library VotingPowerProviderLogic {
     function unregisterOperator(
         address operator
     ) public {
-        if (!_getVotingPowerProviderStorage()._operators.remove(Time.timestamp(), operator)) {
+        if (!_getVotingPowerProviderStorage()._operators.remove(uint48(block.timestamp), operator)) {
             revert IVotingPowerProvider.VotingPowerProvider_OperatorNotRegistered();
         }
 
@@ -448,7 +466,7 @@ library VotingPowerProviderLogic {
         if ($._allOperatorVaults.contains(vault)) {
             revert IVotingPowerProvider.VotingPowerProvider_OperatorVaultAlreadyIsRegistered();
         }
-        if (!$._sharedVaults.add(Time.timestamp(), vault)) {
+        if (!$._sharedVaults.add(uint48(block.timestamp), vault)) {
             revert IVotingPowerProvider.VotingPowerProvider_SharedVaultAlreadyIsRegistered();
         }
 
@@ -469,10 +487,10 @@ library VotingPowerProviderLogic {
         if ($._sharedVaults.contains(vault)) {
             revert IVotingPowerProvider.VotingPowerProvider_SharedVaultAlreadyIsRegistered();
         }
-        if (!$._allOperatorVaults.add(Time.timestamp(), vault)) {
+        if (!$._allOperatorVaults.add(uint48(block.timestamp), vault)) {
             revert IVotingPowerProvider.VotingPowerProvider_OperatorVaultAlreadyIsRegistered();
         }
-        $._operatorVaults[operator].add(Time.timestamp(), vault);
+        $._operatorVaults[operator].add(uint48(block.timestamp), vault);
 
         emit IVotingPowerProvider.RegisterOperatorVault(operator, vault);
     }
@@ -480,7 +498,7 @@ library VotingPowerProviderLogic {
     function unregisterSharedVault(
         address vault
     ) public {
-        if (!_getVotingPowerProviderStorage()._sharedVaults.remove(Time.timestamp(), vault)) {
+        if (!_getVotingPowerProviderStorage()._sharedVaults.remove(uint48(block.timestamp), vault)) {
             revert IVotingPowerProvider.VotingPowerProvider_SharedVaultNotRegistered();
         }
 
@@ -489,10 +507,10 @@ library VotingPowerProviderLogic {
 
     function unregisterOperatorVault(address operator, address vault) public {
         IVotingPowerProvider.VotingPowerProviderStorage storage $ = _getVotingPowerProviderStorage();
-        if (!$._operatorVaults[operator].remove(Time.timestamp(), vault)) {
+        if (!$._operatorVaults[operator].remove(uint48(block.timestamp), vault)) {
             revert IVotingPowerProvider.VotingPowerProvider_OperatorVaultNotRegistered();
         }
-        $._allOperatorVaults.remove(Time.timestamp(), vault);
+        $._allOperatorVaults.remove(uint48(block.timestamp), vault);
 
         emit IVotingPowerProvider.UnregisterOperatorVault(operator, vault);
     }
@@ -574,16 +592,16 @@ library VotingPowerProviderLogic {
         uint48 slashingWindow = getSlashingWindow();
         address slasher = IVault(vault).slasher();
 
-        if (slasher != address(0)) {
-            uint64 slasherType = IEntity(slasher).TYPE();
-            if (slasherType == uint64(IVotingPowerProvider.SlasherType.VETO)) {
-                vaultEpochDuration -= IVetoSlasher(slasher).vetoDuration();
-            } else if (slasherType > uint64(type(IVotingPowerProvider.SlasherType).max)) {
-                return false;
-            }
-
-            return slashingWindow <= vaultEpochDuration;
+        if (slasher == address(0)) {
+            return slashingWindow == 0;
         }
-        return slashingWindow == 0;
+
+        uint64 slasherType = IEntity(slasher).TYPE();
+        if (slasherType == uint64(IVotingPowerProvider.SlasherType.VETO)) {
+            vaultEpochDuration -= IVetoSlasher(slasher).vetoDuration();
+        } else if (slasherType > uint64(type(IVotingPowerProvider.SlasherType).max)) {
+            return false;
+        }
+        return slashingWindow <= vaultEpochDuration;
     }
 }

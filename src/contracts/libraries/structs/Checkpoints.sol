@@ -112,8 +112,10 @@ library Checkpoints {
             return (false, 0, 0, 0);
         }
 
-        OZCheckpoints.Checkpoint208 memory checkpoint = _unsafeAccess(self._trace._checkpoints, pos - 1);
-        return (true, checkpoint._key, checkpoint._value, uint32(pos - 1));
+        unchecked {
+            OZCheckpoints.Checkpoint208 memory checkpoint = _unsafeAccess(self._trace._checkpoints, pos - 1);
+            return (true, checkpoint._key, checkpoint._value, uint32(pos - 1));
+        }
     }
 
     /**
@@ -273,8 +275,10 @@ library Checkpoints {
             return (false, 0, 0, 0);
         }
 
-        OZCheckpoints.Checkpoint208 memory checkpoint = _unsafeAccess(self._trace._checkpoints, pos - 1);
-        return (true, checkpoint._key, self._values[checkpoint._value], uint32(pos - 1));
+        unchecked {
+            OZCheckpoints.Checkpoint208 memory checkpoint = _unsafeAccess(self._trace._checkpoints, pos - 1);
+            return (true, checkpoint._key, self._values[checkpoint._value], uint32(pos - 1));
+        }
     }
 
     /**
@@ -450,8 +454,10 @@ library Checkpoints {
             return (false, 0, [uint256(0), 0], 0);
         }
 
-        OZCheckpoints.Checkpoint208 memory checkpoint = _unsafeAccess(self._trace._checkpoints, pos - 1);
-        return (true, checkpoint._key, self._values[checkpoint._value], uint32(pos - 1));
+        unchecked {
+            OZCheckpoints.Checkpoint208 memory checkpoint = _unsafeAccess(self._trace._checkpoints, pos - 1);
+            return (true, checkpoint._key, self._values[checkpoint._value], uint32(pos - 1));
+        }
     }
 
     /**

@@ -48,8 +48,7 @@ library KeyEcdsaSecp256k1 {
         bytes memory keyBytes
     ) internal view returns (KEY_ECDSA_SECP256K1 memory key) {
         key = abi.decode(keyBytes, (KEY_ECDSA_SECP256K1));
-        bytes memory keyBytesDerived = key.unwrap().wrap().toBytes();
-        if (keccak256(keyBytesDerived) != keccak256(keyBytes)) {
+        if (keccak256(key.unwrap().wrap().toBytes()) != keccak256(keyBytes)) {
             revert KeyEcdsaSecp256k1_InvalidBytes();
         }
     }

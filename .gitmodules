@@ -16,3 +16,6 @@
 [submodule "lib/rewards"]
 	path = lib/rewards
 	url = https://github.com/symbioticfi/rewards
+[submodule "lib/chainlink-evm"]
+	path = lib/chainlink-evm
+	url = https://github.com/smartcontractkit/chainlink-evm

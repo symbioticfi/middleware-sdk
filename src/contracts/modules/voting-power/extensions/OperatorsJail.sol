@@ -5,10 +5,12 @@ import {VotingPowerProvider} from "../VotingPowerProvider.sol";
 
 import {IOperatorsJail} from "../../../../interfaces/modules/voting-power/extensions/IOperatorsJail.sol";
 
-import {Time} from "@openzeppelin/contracts/utils/types/Time.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
+import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 
 abstract contract OperatorsJail is VotingPowerProvider, IOperatorsJail {
+    using SafeCast for uint256;
+
     // keccak256(abi.encode(uint256(keccak256("symbiotic.storage.OperatorsJail")) - 1)) & ~bytes32(uint256(0xff))
     bytes32 private constant OperatorsJailStorageLocation =
         0xcf19420dad377ef849f2ba5fafa7311a71756e09aee8adb231516efd3d2b7b00;
@@ -28,7 +30,7 @@ abstract contract OperatorsJail is VotingPowerProvider, IOperatorsJail {
     function isOperatorJailed(
         address operator
     ) public view virtual returns (bool) {
-        return getOperatorJailedUntil(operator) > Time.timestamp();
+        return getOperatorJailedUntil(operator) > block.timestamp;
     }
 
     /**
@@ -47,8 +49,10 @@ abstract contract OperatorsJail is VotingPowerProvider, IOperatorsJail {
         if (duration == 0) {
             revert OperatorsJail_InvalidDuration();
         }
-        _getOperatorsJailStorage()._jailedUntil[operator] =
-            uint48(Math.max(getOperatorJailedUntil(operator), Time.timestamp() + duration));
+        uint48 jailedUntil = uint48(block.timestamp) + duration;
+        if (jailedUntil > getOperatorJailedUntil(operator)) {
+            _getOperatorsJailStorage()._jailedUntil[operator] = jailedUntil;
+        }
         if (isOperatorRegistered(operator)) {
             _unregisterOperator(operator);
         }

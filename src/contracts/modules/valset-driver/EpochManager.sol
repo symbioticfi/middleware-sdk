@@ -6,8 +6,6 @@ import {Checkpoints} from "../../../contracts/libraries/structs/Checkpoints.sol"
 
 import {IEpochManager} from "../../../interfaces/modules/valset-driver/IEpochManager.sol";
 
-import {Time} from "@openzeppelin/contracts/utils/types/Time.sol";
-
 abstract contract EpochManager is PermissionManager, IEpochManager {
     using Checkpoints for Checkpoints.Trace208;
 
@@ -25,7 +23,9 @@ abstract contract EpochManager is PermissionManager, IEpochManager {
     function __EpochManager_init(
         EpochManagerInitParams memory initParams
     ) internal virtual onlyInitializing {
-        if (initParams.epochDurationTimestamp < Time.timestamp()) {
+        if (initParams.epochDurationTimestamp == 0) {
+            initParams.epochDurationTimestamp = uint48(block.timestamp);
+        } else if (initParams.epochDurationTimestamp < block.timestamp) {
             revert EpochManager_InvalidEpochDurationTimestamp();
         }
         _setEpochDuration(initParams.epochDuration, initParams.epochDurationTimestamp, 0);
@@ -38,7 +38,7 @@ abstract contract EpochManager is PermissionManager, IEpochManager {
     function getCurrentEpoch() public view virtual returns (uint48) {
         (uint48 epochDuration, uint48 epochDurationTimestamp, uint48 epochDurationIndex) =
             _getCurrentEpochDurationData();
-        return epochDurationIndex + (Time.timestamp() - epochDurationTimestamp) / epochDuration;
+        return epochDurationIndex + (uint48(block.timestamp) - epochDurationTimestamp) / epochDuration;
     }
 
     /**
@@ -62,7 +62,7 @@ abstract contract EpochManager is PermissionManager, IEpochManager {
      */
     function getNextEpoch() public view virtual returns (uint48) {
         (, uint48 epochDurationTimestamp,) = _getFirstEpochDurationData();
-        if (Time.timestamp() < epochDurationTimestamp) {
+        if (block.timestamp < epochDurationTimestamp) {
             return 0;
         }
         return getCurrentEpoch() + 1;
@@ -73,7 +73,7 @@ abstract contract EpochManager is PermissionManager, IEpochManager {
      */
     function getNextEpochDuration() public view virtual returns (uint48) {
         (uint48 epochDuration, uint48 epochDurationTimestamp,) = _getFirstEpochDurationData();
-        if (Time.timestamp() < epochDurationTimestamp) {
+        if (block.timestamp < epochDurationTimestamp) {
             return epochDuration;
         }
         (epochDuration,,) =
@@ -86,7 +86,7 @@ abstract contract EpochManager is PermissionManager, IEpochManager {
      */
     function getNextEpochStart() public view virtual returns (uint48) {
         (, uint48 epochDurationTimestamp,) = _getFirstEpochDurationData();
-        if (Time.timestamp() < epochDurationTimestamp) {
+        if (block.timestamp < epochDurationTimestamp) {
             return epochDurationTimestamp;
         }
         return getCurrentEpochStart() + getCurrentEpochDuration();
@@ -95,9 +95,11 @@ abstract contract EpochManager is PermissionManager, IEpochManager {
     /**
      * @inheritdoc IEpochManager
      */
-    function getEpochIndex(uint48 timestamp, bytes memory hint) public view virtual returns (uint48) {
+    function getEpochIndex(
+        uint48 timestamp
+    ) public view virtual returns (uint48) {
         (uint48 epochDuration, uint48 epochDurationTimestamp, uint48 epochDurationIndex) =
-            _getEpochDurationDataByTimestamp(timestamp, hint);
+            _getEpochDurationDataByTimestamp(timestamp);
         if (epochDuration == 0) {
             revert EpochManager_TooOldTimestamp();
         }
@@ -107,16 +109,20 @@ abstract contract EpochManager is PermissionManager, IEpochManager {
     /**
      * @inheritdoc IEpochManager
      */
-    function getEpochDuration(uint48 epoch, bytes memory hint) public view virtual returns (uint48 epochDuration) {
-        (epochDuration,,) = _getEpochDurationDataByIndex(epoch, hint);
+    function getEpochDuration(
+        uint48 epoch
+    ) public view virtual returns (uint48 epochDuration) {
+        (epochDuration,,) = _getEpochDurationDataByIndex(epoch);
     }
 
     /**
      * @inheritdoc IEpochManager
      */
-    function getEpochStart(uint48 epoch, bytes memory hint) public view virtual returns (uint48) {
+    function getEpochStart(
+        uint48 epoch
+    ) public view virtual returns (uint48) {
         (uint48 epochDuration, uint48 epochDurationTimestamp, uint48 epochDurationIndex) =
-            _getEpochDurationDataByIndex(epoch, hint);
+            _getEpochDurationDataByIndex(epoch);
         return epochDurationTimestamp + (epoch - epochDurationIndex) * epochDuration;
     }
 
@@ -154,26 +160,23 @@ abstract contract EpochManager is PermissionManager, IEpochManager {
     }
 
     function _getEpochDurationDataByTimestamp(
-        uint48 timestamp,
-        bytes memory hint
+        uint48 timestamp
     ) internal view virtual returns (uint48, uint48, uint48) {
         return _deserializeEpochDurationData(
-            _getEpochManagerStorage()._epochDurationDataByTimestamp.upperLookupRecent(timestamp, hint)
+            _getEpochManagerStorage()._epochDurationDataByTimestamp.upperLookupRecent(timestamp)
         );
     }
 
     function _getEpochDurationDataByIndex(
-        uint48 index,
-        bytes memory hint
+        uint48 index
     ) internal view virtual returns (uint48, uint48, uint48) {
-        return _deserializeEpochDurationData(
-            _getEpochManagerStorage()._epochDurationDataByIndex.upperLookupRecent(index, hint)
-        );
+        return
+            _deserializeEpochDurationData(_getEpochManagerStorage()._epochDurationDataByIndex.upperLookupRecent(index));
     }
 
     function _getCurrentEpochDurationData() internal view virtual returns (uint48, uint48, uint48) {
         return _deserializeEpochDurationData(
-            _getCurrentValue(_getEpochManagerStorage()._epochDurationDataByTimestamp, Time.timestamp())
+            _getCurrentValue(_getEpochManagerStorage()._epochDurationDataByTimestamp, uint48(block.timestamp))
         );
     }
 
@@ -200,17 +203,10 @@ abstract contract EpochManager is PermissionManager, IEpochManager {
         uint48 currentTimepoint
     ) internal view virtual returns (uint208) {
         uint256 length = trace.length();
-        if (length == 0) {
-            revert EpochManager_NoCheckpoint();
-        }
         Checkpoints.Checkpoint208 memory checkpoint = trace.at(uint32(length - 1));
         if (checkpoint._key <= currentTimepoint) {
             return checkpoint._value;
         }
-        if (length == 1) {
-            revert EpochManager_NoCheckpoint();
-        }
-        checkpoint = trace.at(uint32(length - 2));
-        return checkpoint._value;
+        return trace.at(uint32(length - 2))._value;
     }
 }

@@ -8,7 +8,6 @@ import {PersistentSet} from "../../libraries/structs/PersistentSet.sol";
 import {Checkpoints} from "../../libraries/structs/Checkpoints.sol";
 import {KeyTags} from "../../libraries/utils/KeyTags.sol";
 
-import {Time} from "@openzeppelin/contracts/utils/types/Time.sol";
 import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 
 import {IValSetDriver} from "../../../interfaces/modules/valset-driver/IValSetDriver.sol";
@@ -474,7 +473,7 @@ abstract contract ValSetDriver is EpochManager, NetworkManager, MulticallUpgrade
             revert ValSetDriver_ChainAlreadyAdded();
         }
         $._isVotingPowerProviderChainAdded[votingPowerProvider.chainId] = true;
-        $._votingPowerProviders.add(Time.timestamp(), _serializeCrossChainAddress(votingPowerProvider));
+        $._votingPowerProviders.add(uint48(block.timestamp), _serializeCrossChainAddress(votingPowerProvider));
         emit AddVotingPowerProvider(votingPowerProvider);
     }
 
@@ -482,7 +481,8 @@ abstract contract ValSetDriver is EpochManager, NetworkManager, MulticallUpgrade
         CrossChainAddress memory votingPowerProvider
     ) internal virtual {
         ValSetDriverStorage storage $ = _getValSetDriverStorage();
-        if (!$._votingPowerProviders.remove(Time.timestamp(), _serializeCrossChainAddress(votingPowerProvider))) {
+        if (!$._votingPowerProviders.remove(uint48(block.timestamp), _serializeCrossChainAddress(votingPowerProvider)))
+        {
             revert ValSetDriver_NotAdded();
         }
         $._isVotingPowerProviderChainAdded[votingPowerProvider.chainId] = false;
@@ -494,7 +494,7 @@ abstract contract ValSetDriver is EpochManager, NetworkManager, MulticallUpgrade
     ) internal virtual {
         _validateCrossChainAddress(keysProvider);
         _getValSetDriverStorage()._keysProvider.push(
-            Time.timestamp(), uint256(_serializeCrossChainAddress(keysProvider))
+            uint48(block.timestamp), uint256(_serializeCrossChainAddress(keysProvider))
         );
         emit SetKeysProvider(keysProvider);
     }
@@ -508,7 +508,7 @@ abstract contract ValSetDriver is EpochManager, NetworkManager, MulticallUpgrade
             revert ValSetDriver_ChainAlreadyAdded();
         }
         $._isReplicaChainAdded[replica.chainId] = true;
-        $._replicas.add(Time.timestamp(), _serializeCrossChainAddress(replica));
+        $._replicas.add(uint48(block.timestamp), _serializeCrossChainAddress(replica));
         emit AddReplica(replica);
     }
 
@@ -516,7 +516,7 @@ abstract contract ValSetDriver is EpochManager, NetworkManager, MulticallUpgrade
         CrossChainAddress memory replica
     ) internal virtual {
         ValSetDriverStorage storage $ = _getValSetDriverStorage();
-        if (!$._replicas.remove(Time.timestamp(), _serializeCrossChainAddress(replica))) {
+        if (!$._replicas.remove(uint48(block.timestamp), _serializeCrossChainAddress(replica))) {
             revert ValSetDriver_NotAdded();
         }
         $._isReplicaChainAdded[replica.chainId] = false;
@@ -526,21 +526,21 @@ abstract contract ValSetDriver is EpochManager, NetworkManager, MulticallUpgrade
     function _setVerificationType(
         uint32 verificationType
     ) internal virtual {
-        _getValSetDriverStorage()._verificationType.push(Time.timestamp(), verificationType);
+        _getValSetDriverStorage()._verificationType.push(uint48(block.timestamp), verificationType);
         emit SetVerificationType(verificationType);
     }
 
     function _setMaxVotingPower(
         uint256 maxVotingPower
     ) internal virtual {
-        _getValSetDriverStorage()._maxVotingPower.push(Time.timestamp(), maxVotingPower);
+        _getValSetDriverStorage()._maxVotingPower.push(uint48(block.timestamp), maxVotingPower);
         emit SetMaxVotingPower(maxVotingPower);
     }
 
     function _setMinInclusionVotingPower(
         uint256 minInclusionVotingPower
     ) internal virtual {
-        _getValSetDriverStorage()._minInclusionVotingPower.push(Time.timestamp(), minInclusionVotingPower);
+        _getValSetDriverStorage()._minInclusionVotingPower.push(uint48(block.timestamp), minInclusionVotingPower);
         emit SetMinInclusionVotingPower(minInclusionVotingPower);
     }
 
@@ -550,14 +550,14 @@ abstract contract ValSetDriver is EpochManager, NetworkManager, MulticallUpgrade
         if (maxValidatorsCount == 0) {
             revert ValSetDriver_InvalidMaxValidatorsCount();
         }
-        _getValSetDriverStorage()._maxValidatorsCount.push(Time.timestamp(), maxValidatorsCount);
+        _getValSetDriverStorage()._maxValidatorsCount.push(uint48(block.timestamp), maxValidatorsCount);
         emit SetMaxValidatorsCount(maxValidatorsCount);
     }
 
     function _setRequiredKeyTags(
         uint8[] memory requiredKeyTags
     ) internal virtual {
-        _getValSetDriverStorage()._requiredKeyTags.push(Time.timestamp(), requiredKeyTags.serialize());
+        _getValSetDriverStorage()._requiredKeyTags.push(uint48(block.timestamp), requiredKeyTags.serialize());
         emit SetRequiredKeyTags(requiredKeyTags);
     }
 
@@ -565,7 +565,7 @@ abstract contract ValSetDriver is EpochManager, NetworkManager, MulticallUpgrade
         uint8 requiredHeaderKeyTag
     ) internal virtual {
         requiredHeaderKeyTag.validateKeyTag();
-        _getValSetDriverStorage()._requiredHeaderKeyTag.push(Time.timestamp(), requiredHeaderKeyTag);
+        _getValSetDriverStorage()._requiredHeaderKeyTag.push(uint48(block.timestamp), requiredHeaderKeyTag);
         emit SetRequiredHeaderKeyTag(requiredHeaderKeyTag);
     }
 
@@ -581,7 +581,7 @@ abstract contract ValSetDriver is EpochManager, NetworkManager, MulticallUpgrade
             revert ValSetDriver_KeyTagAlreadyAdded();
         }
         $._isQuorumThresholdKeyTagAdded[quorumThreshold.keyTag] = true;
-        $._quorumThresholds.add(Time.timestamp(), _serializeQuorumThreshold(quorumThreshold));
+        $._quorumThresholds.add(uint48(block.timestamp), _serializeQuorumThreshold(quorumThreshold));
         emit AddQuorumThreshold(quorumThreshold);
     }
 
@@ -589,7 +589,7 @@ abstract contract ValSetDriver is EpochManager, NetworkManager, MulticallUpgrade
         QuorumThreshold memory quorumThreshold
     ) internal virtual {
         ValSetDriverStorage storage $ = _getValSetDriverStorage();
-        if (!$._quorumThresholds.remove(Time.timestamp(), _serializeQuorumThreshold(quorumThreshold))) {
+        if (!$._quorumThresholds.remove(uint48(block.timestamp), _serializeQuorumThreshold(quorumThreshold))) {
             revert ValSetDriver_NotAdded();
         }
         $._isQuorumThresholdKeyTagAdded[quorumThreshold.keyTag] = false;

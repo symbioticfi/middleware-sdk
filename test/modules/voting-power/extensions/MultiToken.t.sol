@@ -23,8 +23,6 @@ contract TestMultiToken is NoPermissionManager, EqualStakeVPCalc, MultiToken {
         IVotingPowerProvider.VotingPowerProviderInitParams memory votingPowerProviderInit
     ) external initializer {
         __VotingPowerProvider_init(votingPowerProviderInit);
-
-        __MultiToken_init();
     }
 }
 

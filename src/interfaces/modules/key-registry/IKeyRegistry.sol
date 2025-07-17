@@ -75,16 +75,6 @@ interface IKeyRegistry {
     }
 
     /**
-     * @notice The hints for a single operator's keys fetching.
-     * @param keyTagsHint The hint for the key tags.
-     * @param keyHints The hints for the keys.
-     */
-    struct OperatorKeysHints {
-        bytes keyTagsHint;
-        bytes[] keyHints;
-    }
-
-    /**
      * @notice Emitted when the key is set.
      * @param operator The address of the operator.
      * @param tag The tag of the key.
@@ -97,10 +87,9 @@ interface IKeyRegistry {
      * @notice Returns the operator's keys at a specific timestamp.
      * @param operator The address of the operator.
      * @param timestamp The timestamp.
-     * @param hints The hints to optimize the keys fetching.
      * @return The operator's keys.
      */
-    function getKeysAt(address operator, uint48 timestamp, bytes memory hints) external view returns (Key[] memory);
+    function getKeysAt(address operator, uint48 timestamp) external view returns (Key[] memory);
 
     /**
      * @notice Returns the current operator's keys.
@@ -116,16 +105,10 @@ interface IKeyRegistry {
      * @param operator The address of the operator.
      * @param tag The tag of the key.
      * @param timestamp The timestamp.
-     * @param hint The hint to optimize the key fetching.
      * @return The key.
      * @dev Will return a zero key if the key is not found (e.g., abi.encode(address(0)) for ECDSA keys).
      */
-    function getKeyAt(
-        address operator,
-        uint8 tag,
-        uint48 timestamp,
-        bytes memory hint
-    ) external view returns (bytes memory);
+    function getKeyAt(address operator, uint8 tag, uint48 timestamp) external view returns (bytes memory);
 
     /**
      * @notice Returns the current key.

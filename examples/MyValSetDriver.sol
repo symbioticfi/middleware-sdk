@@ -26,7 +26,6 @@ contract MyValSetDriver is ValSetDriver, OzAccessControl {
         address defaultAdmin
     ) public virtual initializer {
         __ValSetDriver_init(valSetDriverInitParams);
-        __OzAccessControl_init();
 
         _grantRole(DEFAULT_ADMIN_ROLE, defaultAdmin);
 

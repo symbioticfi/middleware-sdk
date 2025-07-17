@@ -114,7 +114,7 @@ contract SettlementTest is MasterGenesisSetupTest {
     //     uint256 signersVotingPower = 0;
     //     for (uint256 i; i < votingPowers.length; ++i) {
     //         for (uint256 j; j < votingPowers[i].vaults.length; ++j) {
-    //             signersVotingPower += votingPowers[i].vaults[j].votingPower;
+    //             signersVotingPower += votingPowers[i].vaults[j].value;
     //         }
     //     }
 
@@ -157,7 +157,7 @@ contract SettlementRawTest is Test {
 
         testSettle = new TestSettlement();
 
-        vm.expectRevert(ISettlement.Settlement_NoCheckpoint.selector);
+        vm.expectRevert();
         testSettle.getSigVerifier();
 
         {

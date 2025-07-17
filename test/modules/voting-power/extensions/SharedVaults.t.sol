@@ -22,7 +22,6 @@ contract TestSharedVaults is SharedVaults, NoPermissionManager, EqualStakeVPCalc
         IVotingPowerProvider.VotingPowerProviderInitParams memory votingPowerProviderInit
     ) external initializer {
         __VotingPowerProvider_init(votingPowerProviderInit);
-        __SharedVaults_init();
     }
 
     function registerToken(

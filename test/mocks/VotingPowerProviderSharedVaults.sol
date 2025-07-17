@@ -15,7 +15,5 @@ contract VotingPowerProviderSharedVaults is VotingPowerProvider, OzOwnable, Equa
     ) public virtual initializer {
         __VotingPowerProvider_init(votingPowerProviderInitParams);
         __OzOwnable_init(ozOwnableInitParams);
-        __EqualStakeVPCalc_init();
-        __SharedVaults_init();
     }
 }

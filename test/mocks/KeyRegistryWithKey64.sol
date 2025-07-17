@@ -5,7 +5,6 @@ import {KeyRegistry} from "../../src/contracts/modules/key-registry/KeyRegistry.
 
 import {IKeyRegistry} from "../../src/interfaces/modules/key-registry/IKeyRegistry.sol";
 
-import {Time} from "@openzeppelin/contracts/utils/types/Time.sol";
 import {MulticallUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/MulticallUpgradeable.sol";
 
 import {OzEIP712} from "../../src/contracts/modules/base/OzEIP712.sol";
@@ -35,18 +34,13 @@ contract KeyRegistryWithKey64 is KeyRegistry {
     using InputNormalizer for bytes[][];
     using PersistentSet for PersistentSet.AddressSet;
 
-    function getKeyAt(
-        address operator,
-        uint8 tag,
-        uint48 timestamp,
-        bytes memory hint
-    ) public view override returns (bytes memory) {
+    function getKeyAt(address operator, uint8 tag, uint48 timestamp) public view override returns (bytes memory) {
         if (tag.getType() == KEY_TYPE_KEY64) {
-            bytes memory key = _getKey64At(operator, tag, timestamp, hint);
+            bytes memory key = _getKey64At(operator, tag, timestamp);
             (bytes32 key1, bytes32 key2) = abi.decode(key, (bytes32, bytes32));
             return abi.encode(~key1, ~key2);
         }
-        return super.getKeyAt(operator, tag, timestamp, hint);
+        return super.getKeyAt(operator, tag, timestamp);
     }
 
     function getKey(address operator, uint8 tag) public view override returns (bytes memory) {

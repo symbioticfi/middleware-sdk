@@ -10,8 +10,6 @@ import {ISettlement} from "../../../interfaces/modules/settlement/ISettlement.so
 import {OzEIP712} from "../base/OzEIP712.sol";
 import {PermissionManager} from "../base/PermissionManager.sol";
 
-import {Time} from "@openzeppelin/contracts/utils/types/Time.sol";
-
 abstract contract Settlement is NetworkManager, OzEIP712, PermissionManager, ISettlement {
     using Checkpoints for Checkpoints.Trace208;
 
@@ -329,7 +327,7 @@ abstract contract Settlement is NetworkManager, OzEIP712, PermissionManager, ISe
         }
 
         uint48 lastCommittedHeaderEpoch = getLastCommittedHeaderEpoch();
-        if (lastCommittedHeaderEpoch != 0) {
+        if (lastCommittedHeaderEpoch > 0) {
             if (header.epoch <= lastCommittedHeaderEpoch) {
                 revert Settlement_InvalidEpoch();
             }
@@ -339,7 +337,7 @@ abstract contract Settlement is NetworkManager, OzEIP712, PermissionManager, ISe
 
         if (
             header.captureTimestamp <= getCaptureTimestampFromValSetHeaderAt(lastCommittedHeaderEpoch)
-                || header.captureTimestamp >= Time.timestamp()
+                || header.captureTimestamp >= block.timestamp
         ) {
             revert Settlement_InvalidCaptureTimestamp();
         }
@@ -360,8 +358,7 @@ abstract contract Settlement is NetworkManager, OzEIP712, PermissionManager, ISe
         headerStorage.previousHeaderHash = header.previousHeaderHash;
 
         mapping(bytes32 key => bytes32 value) storage extraDataStorage = $._extraData[header.epoch];
-        uint256 extraDataLength = extraData.length;
-        for (uint256 i; i < extraDataLength; ++i) {
+        for (uint256 i; i < extraData.length; ++i) {
             if (extraDataStorage[extraData[i].key] != bytes32(0)) {
                 revert Settlement_DuplicateExtraDataKey();
             }
@@ -376,17 +373,10 @@ abstract contract Settlement is NetworkManager, OzEIP712, PermissionManager, ISe
         uint48 currentTimepoint
     ) internal view virtual returns (uint208) {
         uint256 length = trace.length();
-        if (length == 0) {
-            revert Settlement_NoCheckpoint();
-        }
         Checkpoints.Checkpoint208 memory checkpoint = trace.at(uint32(length - 1));
         if (checkpoint._key <= currentTimepoint) {
             return checkpoint._value;
         }
-        if (length == 1) {
-            revert Settlement_NoCheckpoint();
-        }
-        checkpoint = trace.at(uint32(length - 2));
-        return checkpoint._value;
+        return trace.at(uint32(length - 2))._value;
     }
 }

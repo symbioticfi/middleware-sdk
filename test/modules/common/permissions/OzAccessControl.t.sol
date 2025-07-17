@@ -10,7 +10,6 @@ contract TestOzAccessControl is OzAccessControl {
     bytes32 public constant ADMIN_ROLE = bytes32(0);
 
     function initialize() external initializer {
-        __OzAccessControl_init();
         _grantRole(ADMIN_ROLE, msg.sender);
         _setSelectorRole(TestOzAccessControl.protectedFunction.selector, ADMIN_ROLE);
     }

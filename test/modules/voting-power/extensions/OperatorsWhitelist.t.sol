@@ -31,7 +31,7 @@ contract TestOperatorsWhitelist is
         OperatorsWhitelistInitParams memory wlInit
     ) external initializer {
         __VotingPowerProvider_init(votingPowerProviderInit);
-        __OperatorVaults_init();
+
         __OperatorsWhitelist_init(wlInit);
     }
 

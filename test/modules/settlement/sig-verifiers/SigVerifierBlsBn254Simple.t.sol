@@ -70,7 +70,7 @@ contract SigVerifierBlsBn254SimpleTest is MasterSetupTest {
 
         (ISettlement.ValSetHeader memory valSetHeader, ISettlement.ExtraData[] memory extraData) = loadGenesisSimple();
 
-        vm.warp(masterSetupParams.valSetDriver.getEpochStart(0, new bytes(0)) + 1);
+        vm.warp(masterSetupParams.valSetDriver.getEpochStart(0) + 1);
 
         vm.startPrank(vars.deployer.addr);
         masterSetupParams.settlement.setGenesis(valSetHeader, extraData);
@@ -130,7 +130,7 @@ contract SigVerifierBlsBn254SimpleTest is MasterSetupTest {
         uint256 totalVotingPower;
         for (uint256 i; i < votingPowers.length; ++i) {
             for (uint256 j; j < votingPowers[i].vaults.length; ++j) {
-                totalVotingPower += votingPowers[i].vaults[j].votingPower;
+                totalVotingPower += votingPowers[i].vaults[j].value;
             }
         }
 
@@ -235,7 +235,7 @@ contract SigVerifierBlsBn254SimpleTest is MasterSetupTest {
         uint256 totalVotingPower;
         for (uint256 i; i < votingPowers.length; ++i) {
             for (uint256 j; j < votingPowers[i].vaults.length; ++j) {
-                totalVotingPower += votingPowers[i].vaults[j].votingPower;
+                totalVotingPower += votingPowers[i].vaults[j].value;
             }
         }
 
@@ -309,7 +309,7 @@ contract SigVerifierBlsBn254SimpleTest is MasterSetupTest {
         uint256 totalVotingPower;
         for (uint256 i; i < votingPowers.length; ++i) {
             for (uint256 j; j < votingPowers[i].vaults.length; ++j) {
-                totalVotingPower += votingPowers[i].vaults[j].votingPower;
+                totalVotingPower += votingPowers[i].vaults[j].value;
             }
         }
 
@@ -380,7 +380,7 @@ contract SigVerifierBlsBn254SimpleTest is MasterSetupTest {
         uint256 totalVotingPower;
         for (uint256 i; i < votingPowers.length; ++i) {
             for (uint256 j; j < votingPowers[i].vaults.length; ++j) {
-                totalVotingPower += votingPowers[i].vaults[j].votingPower;
+                totalVotingPower += votingPowers[i].vaults[j].value;
             }
         }
         uint256 nonSignersPower;
@@ -390,7 +390,7 @@ contract SigVerifierBlsBn254SimpleTest is MasterSetupTest {
                 currentNonSignerIndex := mload(shr(240, calldataload(add(add(nonSigners, 32), mul(div(i, 6), 2)))))
             }
             for (uint256 j; j < votingPowers[currentNonSignerIndex].vaults.length; ++j) {
-                nonSignersPower += votingPowers[currentNonSignerIndex].vaults[j].votingPower;
+                nonSignersPower += votingPowers[currentNonSignerIndex].vaults[j].value;
             }
         }
         assertFalse(
@@ -414,14 +414,14 @@ contract SigVerifierBlsBn254SimpleTest is MasterSetupTest {
         uint256 totalVotingPower;
         for (uint256 i; i < votingPowers.length; ++i) {
             for (uint256 j; j < votingPowers[i].vaults.length; ++j) {
-                totalVotingPower += votingPowers[i].vaults[j].votingPower;
+                totalVotingPower += votingPowers[i].vaults[j].value;
             }
         }
         valSetHeader = ISettlement.ValSetHeader({
             version: 1,
             requiredKeyTag: 15,
             epoch: 0,
-            captureTimestamp: masterSetupParams.valSetDriver.getEpochStart(0, new bytes(0)),
+            captureTimestamp: masterSetupParams.valSetDriver.getEpochStart(0),
             quorumThreshold: uint256(2).mulDiv(1e18, 3, Math.Rounding.Ceil).mulDiv(totalVotingPower, 1e18) + 1,
             validatorsSszMRoot: 0x0000000000000000000000000000000000000000000000000000000000000000,
             previousHeaderHash: 0x868e09d528a16744c1f38ea3c10cc2251e01a456434f91172247695087d129b7
@@ -470,11 +470,11 @@ contract SigVerifierBlsBn254SimpleTest is MasterSetupTest {
         validatorsData = new ValidatorData[](networkSetupParams.OPERATORS_TO_REGISTER);
         for (uint256 i; i < networkSetupParams.OPERATORS_TO_REGISTER; ++i) {
             BN254.G1Point memory keyG1 = BN254.generatorG1().scalar_mul(getOperator(i).privateKey);
-            IVotingPowerProvider.VaultVotingPower[] memory votingPowers =
+            IVotingPowerProvider.VaultValue[] memory votingPowers =
                 masterSetupParams.votingPowerProvider.getOperatorVotingPowers(getOperator(i).addr, new bytes(0));
             uint256 operatorVotingPower;
             for (uint256 j; j < votingPowers.length; ++j) {
-                operatorVotingPower += votingPowers[j].votingPower;
+                operatorVotingPower += votingPowers[j].value;
             }
             validatorsData[i] = ValidatorData({
                 keySerialized: abi.decode(keyG1.wrap().serialize(), (bytes32)),

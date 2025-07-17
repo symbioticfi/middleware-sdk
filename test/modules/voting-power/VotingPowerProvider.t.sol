@@ -26,6 +26,49 @@ contract TestVotingPowerProvider is VotingPowerProvider, EqualStakeVPCalc, NoPer
         __VotingPowerProvider_init(votingPowerProviderInit);
     }
 
+    function getTokensLength() external view returns (uint256) {
+        return _getTokensLength();
+    }
+
+    function getOperatorsLength() external view returns (uint256) {
+        return _getOperatorsLength();
+    }
+
+    function getSharedVaultsLength() external view returns (uint256) {
+        return _getSharedVaultsLength();
+    }
+
+    function getOperatorVaultsLength(
+        address operator
+    ) external view returns (uint256) {
+        return _getOperatorVaultsLength(operator);
+    }
+
+    function getOperatorStakeAt(address operator, address vault, uint48 timestamp) external view returns (uint256) {
+        return _getOperatorStakeAt(operator, vault, timestamp);
+    }
+
+    function getOperatorStake(address operator, address vault) external view returns (uint256) {
+        return _getOperatorStake(operator, vault);
+    }
+
+    function getOperatorVotingPowerAt(
+        address operator,
+        address vault,
+        bytes memory extraData,
+        uint48 timestamp
+    ) external view returns (uint256) {
+        return _getOperatorVotingPowerAt(operator, vault, extraData, timestamp);
+    }
+
+    function getOperatorVotingPower(
+        address operator,
+        address vault,
+        bytes memory extraData
+    ) external view returns (uint256) {
+        return _getOperatorVotingPower(operator, vault, extraData);
+    }
+
     function registerOperator(
         address operator
     ) external {
@@ -205,11 +248,11 @@ contract VotingPowerProviderTest is InitSetupTest {
         vm.warp(vm.getBlockTimestamp() + 100);
         uint48 t1 = uint48(vm.getBlockTimestamp());
 
-        bool wasRegisteredBefore = votingPowerProvider.isOperatorRegisteredAt(validOperator, t0 - 1, "");
+        bool wasRegisteredBefore = votingPowerProvider.isOperatorRegisteredAt(validOperator, t0 - 1);
         assertFalse(wasRegisteredBefore, "Should be inregistered before we registered");
-        bool isRegisteredT0 = votingPowerProvider.isOperatorRegisteredAt(validOperator, t0, "");
+        bool isRegisteredT0 = votingPowerProvider.isOperatorRegisteredAt(validOperator, t0);
         assertTrue(isRegisteredT0, "Should be registered at T0");
-        bool isRegisteredT1 = votingPowerProvider.isOperatorRegisteredAt(validOperator, t1, "");
+        bool isRegisteredT1 = votingPowerProvider.isOperatorRegisteredAt(validOperator, t1);
         assertTrue(isRegisteredT1, "Should be registered at T1");
     }
 
@@ -297,7 +340,7 @@ contract VotingPowerProviderTest is InitSetupTest {
         assertEq(registeredTokens[0], initSetupParams.masterChain.tokens[0]);
 
         assertTrue(votingPowerProvider.isTokenRegistered(initSetupParams.masterChain.tokens[0]));
-        assertFalse(votingPowerProvider.isTokenRegisteredAt(tokenB, uint48(vm.getBlockTimestamp()), ""));
+        assertFalse(votingPowerProvider.isTokenRegisteredAt(tokenB, uint48(vm.getBlockTimestamp())));
 
         registeredTokens = votingPowerProvider.getTokens();
         assertEq(registeredTokens.length, 1);
@@ -334,7 +377,7 @@ contract VotingPowerProviderTest is InitSetupTest {
         assertEq(votingPowerProvider.isSharedVaultRegistered(initSetupParams.masterChain.vaults[0]), true);
         assertEq(
             votingPowerProvider.isSharedVaultRegisteredAt(
-                initSetupParams.masterChain.vaults[0], uint48(vm.getBlockTimestamp()), ""
+                initSetupParams.masterChain.vaults[0], uint48(vm.getBlockTimestamp())
             ),
             true
         );
@@ -615,10 +658,9 @@ contract VotingPowerProviderTest is InitSetupTest {
 
         assertEq(votingPowerProvider.isOperatorVaultRegistered(operator1, opVault), true);
         assertEq(
-            votingPowerProvider.isOperatorVaultRegisteredAt(operator1, opVault, uint48(vm.getBlockTimestamp()), ""),
-            true
+            votingPowerProvider.isOperatorVaultRegisteredAt(operator1, opVault, uint48(vm.getBlockTimestamp())), true
         );
-        assertEq(votingPowerProvider.isOperatorVaultRegisteredAt(opVault, uint48(vm.getBlockTimestamp()), ""), true);
+        assertEq(votingPowerProvider.isOperatorVaultRegisteredAt(opVault, uint48(vm.getBlockTimestamp())), true);
 
         votingPowerProvider.unregisterOperatorVault(operator1, opVault);
 
@@ -783,6 +825,10 @@ contract VotingPowerProviderTest is InitSetupTest {
             vm.startPrank(vars.network.addr);
             votingPowerProvider.registerOperatorVault(operator.addr, operatorVault);
             vm.stopPrank();
+
+            console2.log(
+                "operatorVotingPowers1", votingPowerProvider.getOperatorStake(getOperator(0).addr, operatorVault)
+            );
         }
 
         IVotingPowerProvider.OperatorVotingPower[] memory operatorVotingPowers1 =
@@ -794,8 +840,14 @@ contract VotingPowerProviderTest is InitSetupTest {
 
         uint256 totalStake;
         for (uint256 i; i < SYMBIOTIC_CORE_NUMBER_OF_OPERATORS; ++i) {
+            IVotingPowerProvider.VaultValue[] memory vaultStakes1 =
+                votingPowerProvider.getOperatorStakes(getOperator(0).addr);
+            assertEq(
+                abi.encode(vaultStakes1),
+                abi.encode(votingPowerProvider.getOperatorStakesAt(getOperator(0).addr, uint48(vm.getBlockTimestamp())))
+            );
             Vm.Wallet memory operator = getOperator(i);
-            IVotingPowerProvider.VaultVotingPower[] memory vaultVotingPowers1 =
+            IVotingPowerProvider.VaultValue[] memory vaultVotingPowers1 =
                 votingPowerProvider.getOperatorVotingPowers(operator.addr, "");
             assertEq(
                 abi.encode(vaultVotingPowers1),
@@ -842,12 +894,12 @@ contract VotingPowerProviderTest is InitSetupTest {
                     ) + j
                 ) / SYMBIOTIC_CORE_NUMBER_OF_OPERATORS;
                 assertEq(
-                    votingPowerProvider.getOperatorStake(initSetupParams.masterChain.vaults[j], operator.addr),
+                    votingPowerProvider.getOperatorStake(operator.addr, initSetupParams.masterChain.vaults[j]),
                     operatorVaultStake
                 );
                 assertEq(
                     votingPowerProvider.getOperatorStakeAt(
-                        initSetupParams.masterChain.vaults[j], operator.addr, uint48(vm.getBlockTimestamp()), ""
+                        operator.addr, initSetupParams.masterChain.vaults[j], uint48(vm.getBlockTimestamp())
                     ),
                     operatorVaultStake
                 );
@@ -876,37 +928,30 @@ contract VotingPowerProviderTest is InitSetupTest {
 
                 assertEq(
                     votingPowerProvider.getOperatorVotingPowerAt(
-                        operator.addr, initSetupParams.masterChain.vaults[j], "", uint48(vm.getBlockTimestamp()), ""
+                        operator.addr, initSetupParams.masterChain.vaults[j], "", uint48(vm.getBlockTimestamp())
                     ),
                     operatorVaultStake
                 );
 
                 assertEq(
                     votingPowerProvider.getOperatorVotingPowerAt(
-                        operator.addr,
-                        initSetupParams.masterChain.vaults[j],
-                        "",
-                        uint48(vm.getBlockTimestamp()),
-                        abi.encode(
-                            IVotingPowerProvider.OperatorVaultVotingPowerHints({
-                                isTokenRegisteredHint: new bytes(0),
-                                stakeHints: new bytes(0)
-                            })
-                        )
+                        operator.addr, initSetupParams.masterChain.vaults[j], "", uint48(vm.getBlockTimestamp())
                     ),
                     operatorVaultStake
                 );
                 assertEq(
                     votingPowerProvider.getOperatorVotingPowerAt(
-                        operator.addr, vault, "", uint48(vm.getBlockTimestamp()), new bytes(0)
+                        operator.addr, vault, "", uint48(vm.getBlockTimestamp())
                     ),
                     0
                 );
+                assertEq(vaultStakes1[j].vault, initSetupParams.masterChain.vaults[j]);
+                assertEq(vaultStakes1[j].value, operatorVaultStake);
                 assertEq(vaultVotingPowers1[j].vault, initSetupParams.masterChain.vaults[j]);
-                assertEq(vaultVotingPowers1[j].votingPower, operatorVaultStake);
+                assertEq(vaultVotingPowers1[j].value, operatorVaultStake);
                 assertEq(operatorVotingPowers1[i].operator, operator.addr);
                 assertEq(operatorVotingPowers1[i].vaults[j].vault, initSetupParams.masterChain.vaults[j]);
-                assertEq(operatorVotingPowers1[i].vaults[j].votingPower, operatorVaultStake);
+                assertEq(operatorVotingPowers1[i].vaults[j].value, operatorVaultStake);
                 operatorStake += operatorVaultStake;
             }
 

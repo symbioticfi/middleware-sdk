@@ -11,10 +11,14 @@ import {BaseRewardsLogic} from "./logic/BaseRewardsLogic.sol";
 
 abstract contract BaseRewards is VotingPowerProvider, IBaseRewards {
     modifier onlyRewarder() {
+        _checkRewarder();
+        _;
+    }
+
+    function _checkRewarder() internal view virtual {
         if (msg.sender != getRewarder()) {
             revert BaseRewards_NotRewarder();
         }
-        _;
     }
 
     // keccak256(abi.encode(uint256(keccak256("symbiotic.storage.BaseRewards")) - 1)) & ~bytes32(uint256(0xff))
@@ -44,21 +48,13 @@ abstract contract BaseRewards is VotingPowerProvider, IBaseRewards {
     /**
      * @inheritdoc IBaseRewards
      */
-    function setRewarder(
-        address rewarder
-    ) public virtual checkPermission {
-        _setRewarder(rewarder);
-    }
-
-    /**
-     * @inheritdoc IBaseRewards
-     */
     function distributeStakerRewards(
         address stakerRewards,
         address token,
         uint256 amount,
         bytes memory data
-    ) public virtual onlyRewarder {
+    ) public virtual {
+        _checkRewarder();
         BaseRewardsLogic.distributeStakerRewards(stakerRewards, token, amount, data);
     }
 
@@ -70,8 +66,18 @@ abstract contract BaseRewards is VotingPowerProvider, IBaseRewards {
         address token,
         uint256 amount,
         bytes32 root
-    ) public virtual onlyRewarder {
+    ) public virtual {
+        _checkRewarder();
         BaseRewardsLogic.distributeOperatorRewards(operatorRewards, token, amount, root);
+    }
+
+    /**
+     * @inheritdoc IBaseRewards
+     */
+    function setRewarder(
+        address rewarder
+    ) public virtual checkPermission {
+        _setRewarder(rewarder);
     }
 
     function _setRewarder(

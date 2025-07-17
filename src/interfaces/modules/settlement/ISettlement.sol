@@ -50,11 +50,6 @@ interface ISettlement {
     error Settlement_InvalidPreviousHeaderHash();
 
     /**
-     * @notice Reverts when the checkpoint is not found for the current time point.
-     */
-    error Settlement_NoCheckpoint();
-
-    /**
      * @notice The storage of the Settlement contract.
      * @param _lastCommittedHeaderEpoch The epoch of the last committed header.
      * @param _sigVerifier The address of the quorum signature verifier.
