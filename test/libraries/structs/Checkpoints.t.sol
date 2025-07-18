@@ -5,7 +5,7 @@ pragma solidity ^0.8.20;
 
 import {Test} from "forge-std/Test.sol";
 import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
-import {Checkpoints} from "../../../src/contracts/libraries/structs/Checkpoints.sol";
+import {Checkpoints} from "../../../src/libraries/structs/Checkpoints.sol";
 
 contract CheckpointsTrace208Test is Test {
     using Checkpoints for Checkpoints.Trace208;

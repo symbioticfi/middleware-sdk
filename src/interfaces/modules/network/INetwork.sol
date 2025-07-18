@@ -5,6 +5,11 @@ import {ISetMaxNetworkLimitHook} from "./ISetMaxNetworkLimitHook.sol";
 
 interface INetwork is ISetMaxNetworkLimitHook {
     /**
+     * @notice Reverts when the calldata length is invalid.
+     */
+    error InvalidDataLength();
+
+    /**
      * @notice Reverts when the new delay is non-zero but disabled.
      */
     error InvalidNewDelay();
@@ -13,11 +18,6 @@ interface INetwork is ISetMaxNetworkLimitHook {
      * @notice Reverts when the "recursive" delay update is attempted.
      */
     error InvalidTargetAndSelector();
-
-    /**
-     * @notice Reverts when the calldata length is invalid.
-     */
-    error InvalidDataLength();
 
     /**
      * @notice Reverts when the caller is not the network's middleware.

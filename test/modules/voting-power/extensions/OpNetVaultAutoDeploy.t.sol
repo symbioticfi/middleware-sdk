@@ -3,13 +3,12 @@ pragma solidity ^0.8.25;
 
 import "forge-std/Test.sol";
 
-import {OpNetVaultAutoDeploy} from "../../../../src/contracts/modules/voting-power/extensions/OpNetVaultAutoDeploy.sol";
-import {VotingPowerProvider} from "../../../../src/contracts/modules/voting-power/VotingPowerProvider.sol";
+import {OpNetVaultAutoDeploy} from "../../../../src/modules/voting-power/extensions/OpNetVaultAutoDeploy.sol";
+import {VotingPowerProvider} from "../../../../src/modules/voting-power/VotingPowerProvider.sol";
 import {NoPermissionManager} from "../../../../test/mocks/NoPermissionManager.sol";
-import {EqualStakeVPCalc} from
-    "../../../../src/contracts/modules/voting-power/common/voting-power-calc/EqualStakeVPCalc.sol";
-import {MultiToken} from "../../../../src/contracts/modules/voting-power/extensions/MultiToken.sol";
-import {OperatorVaults} from "../../../../src/contracts/modules/voting-power/extensions/OperatorVaults.sol";
+import {EqualStakeVPCalc} from "../../../../src/modules/voting-power/common/voting-power-calc/EqualStakeVPCalc.sol";
+import {MultiToken} from "../../../../src/modules/voting-power/extensions/MultiToken.sol";
+import {OperatorVaults} from "../../../../src/modules/voting-power/extensions/OperatorVaults.sol";
 import {INetworkManager} from "../../../../src/interfaces/modules/base/INetworkManager.sol";
 import {IOpNetVaultAutoDeploy} from
     "../../../../src/interfaces/modules/voting-power/extensions/IOpNetVaultAutoDeploy.sol";
@@ -101,7 +100,7 @@ contract OpNetVaultAutoDeployTest is Test, InitSetupTest {
         );
 
         INetworkManager.NetworkManagerInitParams memory netInit =
-            INetworkManager.NetworkManagerInitParams({network: address(network), subnetworkID: IDENTIFIER});
+            INetworkManager.NetworkManagerInitParams({network: address(network), subnetworkId: IDENTIFIER});
         IVotingPowerProvider.VotingPowerProviderInitParams memory vpInit = IVotingPowerProvider
             .VotingPowerProviderInitParams({
             networkManagerInitParams: netInit,

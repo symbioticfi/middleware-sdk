@@ -3,85 +3,84 @@ pragma solidity ^0.8.0;
 
 import {INetworkManager} from "../base/INetworkManager.sol";
 import {IOzEIP712} from "../base/IOzEIP712.sol";
-import {Checkpoints} from "../../../contracts/libraries/structs/Checkpoints.sol";
 
-import {PersistentSet} from "../../../contracts/libraries/structs/PersistentSet.sol";
+import {Checkpoints} from "../../../libraries/structs/Checkpoints.sol";
+import {PersistentSet} from "../../../libraries/structs/PersistentSet.sol";
 
 interface IVotingPowerProvider {
     /**
-     * @notice The error thrown when the signature is invalid.
-     */
-    error VotingPowerProvider_InvalidSignature();
-
-    /**
-     * @notice The error thrown when the shared vault is invalid.
-     */
-    error VotingPowerProvider_InvalidSharedVault();
-
-    /**
-     * @notice The error thrown when the vault is invalid.
-     */
-    error VotingPowerProvider_InvalidVault();
-
-    /**
-     * @notice The error thrown when the operator vault is invalid.
-     */
-    error VotingPowerProvider_InvalidOperatorVault();
-
-    /**
-     * @notice The error thrown when the shared vault is already registered.
-     */
-    error VotingPowerProvider_SharedVaultAlreadyIsRegistered();
-
-    /**
-     * @notice The error thrown when the operator vault is already registered.
-     */
-    error VotingPowerProvider_OperatorVaultAlreadyIsRegistered();
-
-    /**
-     * @notice The error thrown when the token is already registered.
-     */
-    error VotingPowerProvider_TokenAlreadyIsRegistered();
-
-    /**
-     * @notice The error thrown when the token is not registered.
-     */
-    error VotingPowerProvider_TokenNotRegistered();
-
-    /**
-     * @notice The error thrown when the operator is not registered.
-     */
-    error VotingPowerProvider_OperatorNotRegistered();
-
-    /**
-     * @notice The error thrown when the shared vault is not registered.
-     */
-    error VotingPowerProvider_SharedVaultNotRegistered();
-
-    /**
-     * @notice The error thrown when the operator vault is not registered.
-     */
-    error VotingPowerProvider_OperatorVaultNotRegistered();
-
-    /**
-     * @notice The error thrown when the token is zero address.
-     */
-    error VotingPowerProvider_InvalidToken();
-
-    /**
-     * @notice The error thrown when the slashing window is greater than the current one.
-     */
-    error VotingPowerProvider_SlashingWindowTooLarge();
-
-    /**
-     * @notice The error thrown when the operator is not registered in the OperatorRegistry.
+     * @notice Reverts when the operator is not registered in the OperatorRegistry.
      */
     error VotingPowerProvider_InvalidOperator();
 
     /**
-     * @notice The error thrown when the operator is already registered.
+     * @notice Reverts when the operator vault is invalid.
+     */
+    error VotingPowerProvider_InvalidOperatorVault();
+
+    /**
+     * @notice Reverts when the shared vault is invalid.
+     */
+    error VotingPowerProvider_InvalidSharedVault();
+
+    /**
+     * @notice Reverts when the signature is invalid.
+     */
+    error VotingPowerProvider_InvalidSignature();
+
+    /**
+     * @notice Reverts when the token is zero address.
+     */
+    error VotingPowerProvider_InvalidToken();
+
+    /**
+     * @notice Reverts when the vault is invalid.
+     */
+    error VotingPowerProvider_InvalidVault();
+
+    /**
+     * @notice Reverts when the operator is already registered.
      */
     error VotingPowerProvider_OperatorAlreadyRegistered();
+    /**
+     * @notice Reverts when the operator is not registered.
+     */
+    error VotingPowerProvider_OperatorNotRegistered();
+
+    /**
+     * @notice Reverts when the operator vault is already registered.
+     */
+    error VotingPowerProvider_OperatorVaultAlreadyIsRegistered();
+
+    /**
+     * @notice Reverts when the operator vault is not registered.
+     */
+    error VotingPowerProvider_OperatorVaultNotRegistered();
+
+    /**
+     * @notice Reverts when the shared vault is already registered.
+     */
+    error VotingPowerProvider_SharedVaultAlreadyIsRegistered();
+
+    /**
+     * @notice Reverts when the shared vault is not registered.
+     */
+    error VotingPowerProvider_SharedVaultNotRegistered();
+
+    /**
+     * @notice Reverts when the slashing window is greater than the current one.
+     */
+    error VotingPowerProvider_SlashingWindowTooLarge();
+
+    /**
+     * @notice Reverts when the token is already registered.
+     */
+    error VotingPowerProvider_TokenAlreadyIsRegistered();
+
+    /**
+     * @notice Reverts when the token is not registered.
+     */
+    error VotingPowerProvider_TokenNotRegistered();
 
     /**
      * @notice The types of the delegator.

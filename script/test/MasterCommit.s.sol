@@ -5,8 +5,7 @@ import "./MasterGenesisSetup.s.sol";
 
 import {Bytes} from "@openzeppelin/contracts/utils/Bytes.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
-import {ExtraDataStorageHelper} from
-    "../../src/contracts/modules/settlement/sig-verifiers/libraries/ExtraDataStorageHelper.sol";
+import {ExtraDataStorageHelper} from "../../src/modules/settlement/sig-verifiers/libraries/ExtraDataStorageHelper.sol";
 
 // forge script script/test/MasterCommit.s.sol:MasterCommitScript 25235 --sig "run(uint256)" --rpc-url $ETH_RPC_URL_MASTER
 

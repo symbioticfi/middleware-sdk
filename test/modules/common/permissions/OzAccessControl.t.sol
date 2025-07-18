@@ -2,7 +2,7 @@
 pragma solidity ^0.8.25;
 
 import "forge-std/Test.sol";
-import {OzAccessControl} from "../../../../src/contracts/modules/common/permissions/OzAccessControl.sol";
+import {OzAccessControl} from "../../../../src/modules/common/permissions/OzAccessControl.sol";
 import {IOzAccessControl} from "../../../../src/interfaces/modules/common/permissions/IOzAccessControl.sol";
 import {AccessControlUpgradeable} from "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 

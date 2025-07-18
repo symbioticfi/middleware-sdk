@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.25;
 
-import {BN254} from "../../src/contracts/libraries/utils/BN254.sol";
-import {KeyBlsBn254} from "../../src/contracts/libraries/keys/KeyBlsBn254.sol";
+import {BN254} from "../../src/libraries/utils/BN254.sol";
+import {KeyBlsBn254} from "../../src/libraries/keys/KeyBlsBn254.sol";
 
 contract KeyBlsBn254Mock {
     function wrap(

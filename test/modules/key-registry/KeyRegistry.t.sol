@@ -3,12 +3,12 @@ pragma solidity ^0.8.25;
 
 import "forge-std/Test.sol";
 
-import {KeyRegistry} from "../../../src/contracts/modules/key-registry/KeyRegistry.sol";
+import {KeyRegistry} from "../../../src/modules/key-registry/KeyRegistry.sol";
 import {IKeyRegistry} from "../../../src/interfaces/modules/key-registry/IKeyRegistry.sol";
 
-import {KeyBlsBn254} from "../../../src/contracts/libraries/keys/KeyBlsBn254.sol";
-import {KeyEcdsaSecp256k1} from "../../../src/contracts/libraries/keys/KeyEcdsaSecp256k1.sol";
-import {BN254} from "../../../src/contracts/libraries/utils/BN254.sol";
+import {KeyBlsBn254} from "../../../src/libraries/keys/KeyBlsBn254.sol";
+import {KeyEcdsaSecp256k1} from "../../../src/libraries/keys/KeyEcdsaSecp256k1.sol";
+import {BN254} from "../../../src/libraries/utils/BN254.sol";
 import {BN254G2} from "../../helpers/BN254G2.sol";
 import {ECDSA} from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import {
@@ -16,7 +16,7 @@ import {
 } from "../../../src/interfaces/modules/key-registry/IKeyRegistry.sol";
 
 import {IOzEIP712} from "../../../src/interfaces/modules/base/IOzEIP712.sol";
-import {KeyTags} from "../../../src/contracts/libraries/utils/KeyTags.sol";
+import {KeyTags} from "../../../src/libraries/utils/KeyTags.sol";
 
 import {KeyRegistryWithKey64, KEY_TYPE_KEY64} from "../../mocks/KeyRegistryWithKey64.sol";
 

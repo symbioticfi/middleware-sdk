@@ -1,16 +1,16 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.25;
 
-import {KeyTags} from "../../../../src/contracts/libraries/utils/KeyTags.sol";
-import {KeyEcdsaSecp256k1} from "../../../../src/contracts/libraries/keys/KeyEcdsaSecp256k1.sol";
-import {KeyBlsBn254, BN254} from "../../../../src/contracts/libraries/keys/KeyBlsBn254.sol";
-import {SigBlsBn254} from "../../../../src/contracts/libraries/sigs/SigBlsBn254.sol";
+import {KeyTags} from "../../../../src/libraries/utils/KeyTags.sol";
+import {KeyEcdsaSecp256k1} from "../../../../src/libraries/keys/KeyEcdsaSecp256k1.sol";
+import {KeyBlsBn254, BN254} from "../../../../src/libraries/keys/KeyBlsBn254.sol";
+import {SigBlsBn254} from "../../../../src/libraries/sigs/SigBlsBn254.sol";
 import {
     KEY_TYPE_BLS_BN254,
     KEY_TYPE_ECDSA_SECP256K1
 } from "../../../../src/interfaces/modules/key-registry/IKeyRegistry.sol";
 import {ExtraDataStorageHelper} from
-    "../../../../src/contracts/modules/settlement/sig-verifiers/libraries/ExtraDataStorageHelper.sol";
+    "../../../../src/modules/settlement/sig-verifiers/libraries/ExtraDataStorageHelper.sol";
 
 import {BN254G2} from "../../../helpers/BN254G2.sol";
 
@@ -28,8 +28,7 @@ import {MasterSetupTest} from "../../../MasterSetup.sol";
 
 import {console2} from "forge-std/console2.sol";
 
-import {SigVerifierBlsBn254Simple} from
-    "../../../../src/contracts/modules/settlement/sig-verifiers/SigVerifierBlsBn254Simple.sol";
+import {SigVerifierBlsBn254Simple} from "../../../../src/modules/settlement/sig-verifiers/SigVerifierBlsBn254Simple.sol";
 import "../../../InitSetup.sol";
 
 import {ISigVerifier} from "../../../../src/interfaces/modules/settlement/sig-verifiers/ISigVerifier.sol";

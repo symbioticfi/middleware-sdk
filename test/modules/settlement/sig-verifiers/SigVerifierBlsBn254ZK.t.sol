@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.25;
 
-import {KeyTags} from "../../../../src/contracts/libraries/utils/KeyTags.sol";
-import {KeyEcdsaSecp256k1} from "../../../../src/contracts/libraries/keys/KeyEcdsaSecp256k1.sol";
-import {KeyBlsBn254, BN254} from "../../../../src/contracts/libraries/keys/KeyBlsBn254.sol";
-import {SigBlsBn254} from "../../../../src/contracts/libraries/sigs/SigBlsBn254.sol";
+import {KeyTags} from "../../../../src/libraries/utils/KeyTags.sol";
+import {KeyEcdsaSecp256k1} from "../../../../src/libraries/keys/KeyEcdsaSecp256k1.sol";
+import {KeyBlsBn254, BN254} from "../../../../src/libraries/keys/KeyBlsBn254.sol";
+import {SigBlsBn254} from "../../../../src/libraries/sigs/SigBlsBn254.sol";
 import {
     KEY_TYPE_BLS_BN254,
     KEY_TYPE_ECDSA_SECP256K1
@@ -17,8 +17,7 @@ import {ISettlement} from "../../../../src/interfaces/modules/settlement/ISettle
 import "../../../MasterGenesisSetup.sol";
 
 import {console2} from "forge-std/console2.sol";
-import {SigVerifierBlsBn254ZK} from
-    "../../../../src/contracts/modules/settlement/sig-verifiers/SigVerifierBlsBn254ZK.sol";
+import {SigVerifierBlsBn254ZK} from "../../../../src/modules/settlement/sig-verifiers/SigVerifierBlsBn254ZK.sol";
 
 import {ISigVerifier} from "../../../../src/interfaces/modules/settlement/sig-verifiers/ISigVerifier.sol";
 import {IVotingPowerProvider} from "../../../../src/interfaces/modules/voting-power/IVotingPowerProvider.sol";
@@ -26,7 +25,7 @@ import {ISigVerifierBlsBn254ZK} from
     "../../../../src/interfaces/modules/settlement/sig-verifiers/ISigVerifierBlsBn254ZK.sol";
 
 import {ExtraDataStorageHelper} from
-    "../../../../src/contracts/modules/settlement/sig-verifiers/libraries/ExtraDataStorageHelper.sol";
+    "../../../../src/modules/settlement/sig-verifiers/libraries/ExtraDataStorageHelper.sol";
 
 import {Bytes} from "@openzeppelin/contracts/utils/Bytes.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";

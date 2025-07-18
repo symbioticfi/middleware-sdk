@@ -3,10 +3,10 @@ pragma solidity ^0.8.25;
 
 import {Test} from "forge-std/Test.sol";
 
-import {KeyTags} from "../../../src/contracts/libraries/utils/KeyTags.sol";
-import {KeyEcdsaSecp256k1} from "../../../src/contracts/libraries/keys/KeyEcdsaSecp256k1.sol";
-import {KeyBlsBn254, BN254} from "../../../src/contracts/libraries/keys/KeyBlsBn254.sol";
-import {SigBlsBn254} from "../../../src/contracts/libraries/sigs/SigBlsBn254.sol";
+import {KeyTags} from "../../../src/libraries/utils/KeyTags.sol";
+import {KeyEcdsaSecp256k1} from "../../../src/libraries/keys/KeyEcdsaSecp256k1.sol";
+import {KeyBlsBn254, BN254} from "../../../src/libraries/keys/KeyBlsBn254.sol";
+import {SigBlsBn254} from "../../../src/libraries/sigs/SigBlsBn254.sol";
 
 import {BN254G2} from "../../helpers/BN254G2.sol";
 
@@ -16,17 +16,16 @@ import {MasterGenesisSetupTest} from "../../MasterGenesisSetup.sol";
 
 import {console2} from "forge-std/console2.sol";
 
-import {SigVerifierBlsBn254ZK} from "../../../src/contracts/modules/settlement/sig-verifiers/SigVerifierBlsBn254ZK.sol";
+import {SigVerifierBlsBn254ZK} from "../../../src/modules/settlement/sig-verifiers/SigVerifierBlsBn254ZK.sol";
 
 import {Bytes} from "@openzeppelin/contracts/utils/Bytes.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
-import {Settlement} from "../../../src/contracts/modules/settlement/Settlement.sol";
+import {Settlement} from "../../../src/modules/settlement/Settlement.sol";
 
 import {IOzEIP712} from "../../../src/interfaces/modules/base/IOzEIP712.sol";
 import {INetworkManager} from "../../../src/interfaces/modules/base/INetworkManager.sol";
 import {SigVerifierMock} from "../../mocks/SigVerifierMock.sol";
-import {SigVerifierBlsBn254Simple} from
-    "../../../src/contracts/modules/settlement/sig-verifiers/SigVerifierBlsBn254Simple.sol";
+import {SigVerifierBlsBn254Simple} from "../../../src/modules/settlement/sig-verifiers/SigVerifierBlsBn254Simple.sol";
 import {SigVerifierFalseMock} from "../../mocks/SigVerifierFalseMock.sol";
 
 contract SettlementTest is MasterGenesisSetupTest {
@@ -167,7 +166,7 @@ contract SettlementRawTest is Test {
 
             INetworkManager.NetworkManagerInitParams memory netInit;
             netInit.network = address(0xDEF);
-            netInit.subnetworkID = 999;
+            netInit.subnetworkId = 999;
 
             initParams.ozEip712InitParams = eip712;
             initParams.networkManagerInitParams = netInit;

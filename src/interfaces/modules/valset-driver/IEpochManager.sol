@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import {Checkpoints} from "../../../contracts/libraries/structs/Checkpoints.sol";
+import {Checkpoints} from "../../../libraries/structs/Checkpoints.sol";
 
 interface IEpochManager {
     /**

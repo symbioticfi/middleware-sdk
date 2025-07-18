@@ -7,15 +7,15 @@ import "../../script/integration/SymbioticCoreInit.sol";
 
 import {Token} from "@symbioticfi/core/test/mocks/Token.sol";
 
-import {KeyTags} from "../../src/contracts/libraries/utils/KeyTags.sol";
+import {KeyTags} from "../../src/libraries/utils/KeyTags.sol";
 import {MyKeyRegistry} from "../../examples/MyKeyRegistry.sol";
 import {MyVotingPowerProvider} from "../../examples/MyVotingPowerProvider.sol";
 import {VotingPowerProviderSemiFull} from "../../test/mocks/VotingPowerProviderSemiFull.sol";
 import {MySettlement} from "../../examples/MySettlement.sol";
 import {MyNetwork} from "../../examples/MyNetwork.sol";
 import {MyValSetDriver} from "../../examples/MyValSetDriver.sol";
-import {KeyEcdsaSecp256k1} from "../../src/contracts/libraries/keys/KeyEcdsaSecp256k1.sol";
-import {KeyBlsBn254, BN254} from "../../src/contracts/libraries/keys/KeyBlsBn254.sol";
+import {KeyEcdsaSecp256k1} from "../../src/libraries/keys/KeyEcdsaSecp256k1.sol";
+import {KeyBlsBn254, BN254} from "../../src/libraries/keys/KeyBlsBn254.sol";
 import {
     KEY_TYPE_BLS_BN254, KEY_TYPE_ECDSA_SECP256K1
 } from "../../src/interfaces/modules/key-registry/IKeyRegistry.sol";

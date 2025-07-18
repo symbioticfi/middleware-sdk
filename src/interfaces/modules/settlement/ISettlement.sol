@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 import {INetworkManager} from "../../modules/base/INetworkManager.sol";
 import {IOzEIP712} from "../../modules/base/IOzEIP712.sol";
 
-import {Checkpoints} from "../../../contracts/libraries/structs/Checkpoints.sol";
+import {Checkpoints} from "../../../libraries/structs/Checkpoints.sol";
 
 interface ISettlement {
     /**
@@ -13,20 +13,10 @@ interface ISettlement {
     error Settlement_DuplicateExtraDataKey();
 
     /**
-     * @notice Reverts when the version to be committed is not the same as the version inside the contract.
-     * @dev Can be triggered during the upgrades.
+     * @notice Reverts when the capture timestamp is less than or equal to the capture timestamp of the latest committed header,
+     *         or greater than or equal to the current timestamp.
      */
-    error Settlement_InvalidVersion();
-
-    /**
-     * @notice Reverts when the quorum signature verification fails.
-     */
-    error Settlement_VerificationFailed();
-
-    /**
-     * @notice Reverts when the validator set header is already committed for the proposed epoch.
-     */
-    error Settlement_ValSetHeaderAlreadyCommitted();
+    error Settlement_InvalidCaptureTimestamp();
 
     /**
      * @notice Reverts when the proposed during the commit epoch is less than or equal to the latest committed one.
@@ -34,10 +24,9 @@ interface ISettlement {
     error Settlement_InvalidEpoch();
 
     /**
-     * @notice Reverts when the capture timestamp is less than or equal to the capture timestamp of the latest committed header,
-     *         or greater than or equal to the current timestamp.
+     * @notice Reverts when the proposed previous header hash is not the same as the hash of the latest committed header.
      */
-    error Settlement_InvalidCaptureTimestamp();
+    error Settlement_InvalidPreviousHeaderHash();
 
     /**
      * @notice Reverts when the new quorum signature verifier is zero.
@@ -45,9 +34,20 @@ interface ISettlement {
     error Settlement_InvalidSigVerifier();
 
     /**
-     * @notice Reverts when the proposed previous header hash is not the same as the hash of the latest committed header.
+     * @notice Reverts when the version to be committed is not the same as the version inside the contract.
+     * @dev Can be triggered during the upgrades.
      */
-    error Settlement_InvalidPreviousHeaderHash();
+    error Settlement_InvalidVersion();
+
+    /**
+     * @notice Reverts when the validator set header is already committed for the proposed epoch.
+     */
+    error Settlement_ValSetHeaderAlreadyCommitted();
+
+    /**
+     * @notice Reverts when the quorum signature verification fails.
+     */
+    error Settlement_VerificationFailed();
 
     /**
      * @notice The storage of the Settlement contract.

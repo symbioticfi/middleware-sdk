@@ -3,8 +3,8 @@ pragma solidity ^0.8.25;
 
 import {Test, console2} from "forge-std/Test.sol";
 
-import {SigEcdsaSecp256k1} from "../../../src/contracts/libraries/sigs/SigEcdsaSecp256k1.sol";
-import {KeyEcdsaSecp256k1} from "../../../src/contracts/libraries/keys/KeyEcdsaSecp256k1.sol";
+import {SigEcdsaSecp256k1} from "../../../src/libraries/sigs/SigEcdsaSecp256k1.sol";
+import {KeyEcdsaSecp256k1} from "../../../src/libraries/keys/KeyEcdsaSecp256k1.sol";
 
 import {ECDSA} from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 

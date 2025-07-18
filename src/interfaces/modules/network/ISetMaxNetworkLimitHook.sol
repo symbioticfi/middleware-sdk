@@ -5,9 +5,9 @@ interface ISetMaxNetworkLimitHook {
     /**
      * @notice Sets the maximum network limit for a delegator.
      * @param delegator The address of the delegator.
-     * @param subnetworkID The identifier of the subnetwork.
+     * @param subnetworkId The identifier of the subnetwork.
      * @param maxNetworkLimit The maximum network limit.
      * @dev The caller must be the network's middleware.
      */
-    function setMaxNetworkLimit(address delegator, uint96 subnetworkID, uint256 maxNetworkLimit) external;
+    function setMaxNetworkLimit(address delegator, uint96 subnetworkId, uint256 maxNetworkLimit) external;
 }

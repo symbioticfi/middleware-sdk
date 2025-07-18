@@ -3,6 +3,9 @@ name: test
 on:
   push:
 
+env:
+  ETH_RPC_URL: ${{ secrets.ETH_RPC_URL }}
+
 jobs:
   run-tests:
     name: Run tests

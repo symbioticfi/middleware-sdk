@@ -2,7 +2,7 @@
 pragma solidity ^0.8.25;
 
 import "forge-std/Test.sol";
-import {ValSetVerifier} from "../../../src/contracts/libraries/utils/ValSetVerifier.sol";
+import {ValSetVerifier} from "../../../src/libraries/utils/ValSetVerifier.sol";
 import {ValSetVerifierMock} from "../../mocks/ValSetVerifierMock.sol";
 
 contract ValSetVerifierContract {

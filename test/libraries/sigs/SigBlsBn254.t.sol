@@ -3,9 +3,9 @@ pragma solidity ^0.8.25;
 
 import {Test, console2} from "forge-std/Test.sol";
 
-import {SigBlsBn254} from "../../../src/contracts/libraries/sigs/SigBlsBn254.sol";
-import {KeyBlsBn254} from "../../../src/contracts/libraries/keys/KeyBlsBn254.sol";
-import {BN254} from "../../../src/contracts/libraries/utils/BN254.sol";
+import {SigBlsBn254} from "../../../src/libraries/sigs/SigBlsBn254.sol";
+import {KeyBlsBn254} from "../../../src/libraries/keys/KeyBlsBn254.sol";
+import {BN254} from "../../../src/libraries/utils/BN254.sol";
 import {BN254G2} from "../../helpers/BN254G2.sol";
 
 contract SigBlsBn254Test is Test {

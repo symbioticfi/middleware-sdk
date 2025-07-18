@@ -3,14 +3,14 @@ pragma solidity ^0.8.0;
 
 interface IBaseRewards {
     /**
-     * @notice The error thrown when the caller is not the rewarder.
-     */
-    error BaseRewards_NotRewarder();
-
-    /**
-     * @notice The error thrown when the new rewarder is zero address.
+     * @notice Reverts when the new rewarder is zero address.
      */
     error BaseRewards_InvalidRewarder();
+
+    /**
+     * @notice Reverts when the caller is not the rewarder.
+     */
+    error BaseRewards_NotRewarder();
 
     /**
      * @notice The storage of the BaseRewards contract.

@@ -1,25 +1,23 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.25;
 
-import {VotingPowerProvider} from "../../src/contracts/modules/voting-power/VotingPowerProvider.sol";
-import {OzOwnable} from "../../src/contracts/modules/common/permissions/OzOwnable.sol";
-import {EqualStakeVPCalc} from "../../src/contracts/modules/voting-power/common/voting-power-calc/EqualStakeVPCalc.sol";
-import {SharedVaults} from "../../src/contracts/modules/voting-power/extensions/SharedVaults.sol";
-import {OperatorsBlacklist} from "../../src/contracts/modules/voting-power/extensions/OperatorsBlacklist.sol";
-import {OperatorsWhitelist} from "../../src/contracts/modules/voting-power/extensions/OperatorsWhitelist.sol";
-import {NetworkManager} from "../../src/contracts/modules/base/NetworkManager.sol";
-import {OpNetVaultAutoDeploy} from "../../src/contracts/modules/voting-power/extensions/OpNetVaultAutoDeploy.sol";
-import {OperatorVaults} from "../../src/contracts/modules/voting-power/extensions/OperatorVaults.sol";
-import {BaseSlashing} from "../../src/contracts/modules/voting-power/extensions/BaseSlashing.sol";
-import {BaseRewards} from "../../src/contracts/modules/voting-power/extensions/BaseRewards.sol";
+import {VotingPowerProvider} from "../../src/modules/voting-power/VotingPowerProvider.sol";
+import {OzOwnable} from "../../src/modules/common/permissions/OzOwnable.sol";
+import {EqualStakeVPCalc} from "../../src/modules/voting-power/common/voting-power-calc/EqualStakeVPCalc.sol";
+import {SharedVaults} from "../../src/modules/voting-power/extensions/SharedVaults.sol";
+import {OperatorsBlacklist} from "../../src/modules/voting-power/extensions/OperatorsBlacklist.sol";
+import {OperatorsWhitelist} from "../../src/modules/voting-power/extensions/OperatorsWhitelist.sol";
+import {NetworkManager} from "../../src/modules/base/NetworkManager.sol";
+import {OpNetVaultAutoDeploy} from "../../src/modules/voting-power/extensions/OpNetVaultAutoDeploy.sol";
+import {OperatorVaults} from "../../src/modules/voting-power/extensions/OperatorVaults.sol";
+import {BaseSlashing} from "../../src/modules/voting-power/extensions/BaseSlashing.sol";
+import {BaseRewards} from "../../src/modules/voting-power/extensions/BaseRewards.sol";
 import {IBaseRewards} from "../../src/interfaces/modules/voting-power/extensions/IBaseRewards.sol";
 import {PricedTokensChainlinkVPCalc} from
-    "../../src/contracts/modules/voting-power/common/voting-power-calc/PricedTokensChainlinkVPCalc.sol";
-import {WeightedTokensVPCalc} from
-    "../../src/contracts/modules/voting-power/common/voting-power-calc/WeightedTokensVPCalc.sol";
-import {WeightedVaultsVPCalc} from
-    "../../src/contracts/modules/voting-power/common/voting-power-calc/WeightedVaultsVPCalc.sol";
-import {VotingPowerCalcManager} from "../../src/contracts/modules/voting-power/base/VotingPowerCalcManager.sol";
+    "../../src/modules/voting-power/common/voting-power-calc/PricedTokensChainlinkVPCalc.sol";
+import {WeightedTokensVPCalc} from "../../src/modules/voting-power/common/voting-power-calc/WeightedTokensVPCalc.sol";
+import {WeightedVaultsVPCalc} from "../../src/modules/voting-power/common/voting-power-calc/WeightedVaultsVPCalc.sol";
+import {VotingPowerCalcManager} from "../../src/modules/voting-power/base/VotingPowerCalcManager.sol";
 
 contract VotingPowerProviderFull is
     OzOwnable,

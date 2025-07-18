@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.25;
 
-import {Settlement} from "../src/contracts/modules/settlement/Settlement.sol";
-import {OzAccessControl} from "../src/contracts/modules/common/permissions/OzAccessControl.sol";
+import {Settlement} from "../src/modules/settlement/Settlement.sol";
+import {OzAccessControl} from "../src/modules/common/permissions/OzAccessControl.sol";
 
 import {ISettlement} from "../src/interfaces/modules/settlement/ISettlement.sol";
 

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.25;
 
-import {ValSetVerifier} from "../../src/contracts/libraries/utils/ValSetVerifier.sol";
+import {ValSetVerifier} from "../../src/libraries/utils/ValSetVerifier.sol";
 
 contract ValSetVerifierMock {
     function verifyOperator(

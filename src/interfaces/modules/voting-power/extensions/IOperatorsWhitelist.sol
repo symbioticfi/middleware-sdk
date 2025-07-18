@@ -5,7 +5,7 @@ import {IVotingPowerProvider} from "../IVotingPowerProvider.sol";
 
 interface IOperatorsWhitelist {
     /**
-     * @notice The error thrown when the operator is not whitelisted.
+     * @notice Reverts when the operator is not whitelisted.
      */
     error OperatorsWhitelist_OperatorNotWhitelisted();
 
