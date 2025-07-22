@@ -35,6 +35,11 @@ interface IValSetDriver {
     error ValSetDriver_InvalidCrossChainAddress();
 
     /**
+     * @notice Reverts when the max validators count is zero.
+     */
+    error ValSetDriver_InvalidMaxValidatorsCount();
+
+    /**
      * @notice The storage of the ValSetDriver contract.
      * @param _isVotingPowerProviderChainAdded The mapping from the chain ID to the voting power provider chain added status.
      * @param _votingPowerProviders The set of the voting power providers.

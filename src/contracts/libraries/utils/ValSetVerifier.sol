@@ -399,9 +399,8 @@ library ValSetVerifier {
         /// @solidity memory-safe-assembly
         assembly {
             function callSha256(rdataOffset) {
-                if iszero(staticcall(gas(), SHA256_PRECOMPILE, 0x00, 0x40, rdataOffset, 0x20)) {
-                    mstore(0x00, 0xcd51ef01) // error Sha256CallFailed()
-                    revert(0x1c, 0x04)
+                if iszero(staticcall(sub(gas(), 2000), SHA256_PRECOMPILE, 0x00, 0x40, rdataOffset, 0x20)) {
+                    revert(0x00, 0x00)
                 }
             }
 

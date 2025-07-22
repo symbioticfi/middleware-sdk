@@ -15,6 +15,11 @@ interface IEpochManager {
     error EpochManager_InvalidEpochDurationTimestamp();
 
     /**
+     * @notice Reverts when the timestamp is too old.
+     */
+    error EpochManager_TooOldTimestamp();
+
+    /**
      * @notice Reverts when the checkpoint is not found for the current time point.
      */
     error EpochManager_NoCheckpoint();

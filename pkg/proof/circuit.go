@@ -89,24 +89,31 @@ func (circuit *Circuit) Define(api frontend.API) error {
 	for i := range circuit.ValidatorData {
 		hashAffineG1(&mimcApi, &circuit.ValidatorData[i].Key)
 		mimcApi.Write(circuit.ValidatorData[i].VotingPower)
-		valsetHashTemp := mimcApi.Sum()
 
+		isFillerValidatorData := api.And(fieldFpApi.IsZero(&circuit.ValidatorData[i].Key.X), fieldFpApi.IsZero(&circuit.ValidatorData[i].Key.Y))
+
+		// hash data if VALIDATOR is not a filler
 		valsetHash = api.Select(
-			api.And(fieldFpApi.IsZero(&circuit.ValidatorData[i].Key.X), fieldFpApi.IsZero(&circuit.ValidatorData[i].Key.Y)),
+			isFillerValidatorData,
 			valsetHash,
-			valsetHashTemp,
+			mimcApi.Sum(),
 		)
 
-		// get power if NON-SIGNER otherwise 0
-		pow := api.Select(circuit.ValidatorData[i].IsNonSigner, frontend.Variable(0), circuit.ValidatorData[i].VotingPower)
-		signersAggVotingPower = api.Add(signersAggVotingPower, pow)
+		isFillerOrNonSigner := api.Or(isFillerValidatorData, circuit.ValidatorData[i].IsNonSigner)
 
-		// get key if SIGNER otherwise zero point
-		point := curveApi.Select(api.IsZero(circuit.ValidatorData[i].IsNonSigner), &circuit.ValidatorData[i].Key, &sw_bn254.G1Affine{
-			X: emulated.ValueOf[emulated.BN254Fp](0),
-			Y: emulated.ValueOf[emulated.BN254Fp](0),
-		})
-		signersAggKey = curveApi.AddUnified(signersAggKey, point)
+		// add power if VALIDATOR is not a filler and SIGNER
+		signersAggVotingPower = api.Select(
+			isFillerOrNonSigner,
+			signersAggVotingPower,
+			api.Add(signersAggVotingPower, circuit.ValidatorData[i].VotingPower),
+		)
+
+		// aggregate key if VALIDATOR is not a filler and SIGNER
+		signersAggKey = curveApi.Select(
+			isFillerOrNonSigner,
+			signersAggKey,
+			curveApi.AddUnified(signersAggKey, &circuit.ValidatorData[i].Key),
+		)
 	}
 
 	// compare with public inputs

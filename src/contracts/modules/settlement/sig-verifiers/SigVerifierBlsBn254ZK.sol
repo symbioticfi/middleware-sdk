@@ -81,6 +81,9 @@ contract SigVerifierBlsBn254ZK is ISigVerifierBlsBn254ZK {
         if (keyTag.getType() != KEY_TYPE_BLS_BN254) {
             revert SigVerifierBlsBn254ZK_UnsupportedKeyTag();
         }
+        if (message.length != 32) {
+            revert SigVerifierBlsBn254ZK_InvalidMessageLength();
+        }
 
         // Proof Structure
         // 0 : 256 - ZK proof (uint256[8])
@@ -96,7 +99,7 @@ contract SigVerifierBlsBn254ZK is ISigVerifierBlsBn254ZK {
             if (proofOffset >= msg.data.length) {
                 revert SigVerifierBlsBn254ZK_InvalidProofOffset();
             }
-            if (proof.length < 224) {
+            if (proof.length != 416) {
                 revert SigVerifierBlsBn254ZK_InvalidProofLength();
             }
         }

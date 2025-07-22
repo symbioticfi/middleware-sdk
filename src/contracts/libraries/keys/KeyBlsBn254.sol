@@ -23,11 +23,12 @@ library KeyBlsBn254 {
         if (keyRaw.X >= BN254.FP_MODULUS || keyRaw.Y >= BN254.FP_MODULUS) {
             revert KeyBlsBn254_InvalidKey();
         }
-        (uint256 beta, uint256 derivedY) = BN254.findYFromX(keyRaw.X);
-        if (mulmod(derivedY, derivedY, BN254.FP_MODULUS) != beta) {
-            revert KeyBlsBn254_InvalidKey();
-        }
-        if (keyRaw.Y != derivedY && keyRaw.Y != BN254.FP_MODULUS - derivedY) {
+        if (
+            mulmod(keyRaw.Y, keyRaw.Y, BN254.FP_MODULUS)
+                != addmod(
+                    mulmod(keyRaw.X, mulmod(keyRaw.X, keyRaw.X, BN254.FP_MODULUS), BN254.FP_MODULUS), 3, BN254.FP_MODULUS
+                )
+        ) {
             revert KeyBlsBn254_InvalidKey();
         }
         key = KEY_BLS_BN254(keyRaw);

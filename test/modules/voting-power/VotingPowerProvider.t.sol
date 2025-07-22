@@ -38,10 +38,8 @@ contract TestVotingPowerProvider is VotingPowerProvider, EqualStakeVPCalc, NoPer
         _unregisterOperator(operator);
     }
 
-    function setSlashingWindow(
-        uint48 sw
-    ) external {
-        _setSlashingWindow(sw);
+    function setSlashingData(bool requireSlasher, uint48 minVaultEpochDuration) external {
+        _setSlashingData(requireSlasher, minVaultEpochDuration);
     }
 
     function registerToken(
@@ -95,7 +93,7 @@ contract TestVotingPowerProvider is VotingPowerProvider, EqualStakeVPCalc, NoPer
     function validateVaultEpochDuration(
         address vault
     ) external view returns (bool) {
-        return VotingPowerProviderLogic._validateVaultEpochDuration(vault);
+        return VotingPowerProviderLogic._validateVaultSlashing(vault);
     }
 }
 
@@ -142,7 +140,8 @@ contract VotingPowerProviderTest is InitSetupTest {
             .VotingPowerProviderInitParams({
             networkManagerInitParams: netInit,
             ozEip712InitParams: IOzEIP712.OzEIP712InitParams({name: "MyVotingPowerProvider", version: "1"}),
-            slashingWindow: 100,
+            requireSlasher: true,
+            minVaultEpochDuration: 100,
             token: address(0)
         });
 
@@ -256,16 +255,15 @@ contract VotingPowerProviderTest is InitSetupTest {
         }
     }
 
-    function test_SlashingWindow() public {
-        assertEq(votingPowerProvider.getSlashingWindow(), 100);
+    function test_SlashingData() public {
+        (bool requireSlasher, uint48 minVaultEpochDuration) = votingPowerProvider.getSlashingData();
+        assertTrue(requireSlasher);
+        assertEq(minVaultEpochDuration, 100);
         vm.warp(vm.getBlockTimestamp() + 100);
-        votingPowerProvider.setSlashingWindow(50);
-        assertEq(votingPowerProvider.getSlashingWindow(), 50);
-    }
-
-    function test_SetSlashingWindow_RevertIfLarger() public {
-        vm.expectRevert(IVotingPowerProvider.VotingPowerProvider_SlashingWindowTooLarge.selector);
-        votingPowerProvider.setSlashingWindow(200);
+        votingPowerProvider.setSlashingData(false, 50);
+        (requireSlasher, minVaultEpochDuration) = votingPowerProvider.getSlashingData();
+        assertFalse(requireSlasher);
+        assertEq(minVaultEpochDuration, 50);
     }
 
     function test_RegisterToken() public {
@@ -361,12 +359,13 @@ contract VotingPowerProviderTest is InitSetupTest {
         vm.expectRevert(ERR_INVALID_VAULT);
         votingPowerProvider.registerSharedVault(address(1));
 
+        (bool requireSlasher, uint48 minVaultEpochDuration) = votingPowerProvider.getSlashingData();
         address newVault = _getVault_SymbioticCore(
             VaultParams({
                 owner: vars.deployer.addr,
                 collateral: address(2),
                 burner: 0x000000000000000000000000000000000000dEaD,
-                epochDuration: votingPowerProvider.getSlashingWindow() * 2,
+                epochDuration: minVaultEpochDuration * 2,
                 whitelistedDepositors: new address[](0),
                 depositLimit: 0,
                 delegatorIndex: 0,
@@ -386,7 +385,7 @@ contract VotingPowerProviderTest is InitSetupTest {
                 owner: vars.deployer.addr,
                 collateral: initSetupParams.masterChain.tokens[0],
                 burner: 0x000000000000000000000000000000000000dEaD,
-                epochDuration: votingPowerProvider.getSlashingWindow() - 1,
+                epochDuration: minVaultEpochDuration - 1,
                 whitelistedDepositors: new address[](0),
                 depositLimit: 0,
                 delegatorIndex: 0,
@@ -406,7 +405,7 @@ contract VotingPowerProviderTest is InitSetupTest {
                 owner: vars.deployer.addr,
                 collateral: initSetupParams.masterChain.tokens[0],
                 burner: 0x000000000000000000000000000000000000dEaD,
-                epochDuration: votingPowerProvider.getSlashingWindow() * 2,
+                epochDuration: minVaultEpochDuration * 2,
                 whitelistedDepositors: new address[](0),
                 depositLimit: 0,
                 delegatorIndex: 0,
@@ -426,7 +425,7 @@ contract VotingPowerProviderTest is InitSetupTest {
                 owner: vars.deployer.addr,
                 collateral: initSetupParams.masterChain.tokens[0],
                 burner: 0x000000000000000000000000000000000000dEaD,
-                epochDuration: votingPowerProvider.getSlashingWindow(),
+                epochDuration: minVaultEpochDuration,
                 whitelistedDepositors: new address[](0),
                 depositLimit: 0,
                 delegatorIndex: 0,
@@ -450,7 +449,7 @@ contract VotingPowerProviderTest is InitSetupTest {
                 owner: getOperator(0).addr,
                 collateral: initSetupParams.masterChain.tokens[0],
                 burner: 0x000000000000000000000000000000000000dEaD,
-                epochDuration: votingPowerProvider.getSlashingWindow(),
+                epochDuration: minVaultEpochDuration,
                 whitelistedDepositors: new address[](0),
                 depositLimit: 0,
                 delegatorIndex: 2,
@@ -470,7 +469,7 @@ contract VotingPowerProviderTest is InitSetupTest {
                 owner: getOperator(0).addr,
                 collateral: initSetupParams.masterChain.tokens[0],
                 burner: 0x000000000000000000000000000000000000dEaD,
-                epochDuration: votingPowerProvider.getSlashingWindow(),
+                epochDuration: minVaultEpochDuration,
                 whitelistedDepositors: new address[](0),
                 depositLimit: 0,
                 delegatorIndex: 0,
@@ -490,7 +489,7 @@ contract VotingPowerProviderTest is InitSetupTest {
                 owner: getOperator(0).addr,
                 collateral: initSetupParams.masterChain.tokens[0],
                 burner: 0x000000000000000000000000000000000000dEaD,
-                epochDuration: votingPowerProvider.getSlashingWindow() - 1,
+                epochDuration: minVaultEpochDuration - 1,
                 whitelistedDepositors: new address[](0),
                 depositLimit: 0,
                 delegatorIndex: 2,
@@ -513,7 +512,7 @@ contract VotingPowerProviderTest is InitSetupTest {
                 owner: getOperator(0).addr,
                 collateral: initSetupParams.masterChain.tokens[0],
                 burner: 0x000000000000000000000000000000000000dEaD,
-                epochDuration: votingPowerProvider.getSlashingWindow(),
+                epochDuration: minVaultEpochDuration,
                 whitelistedDepositors: new address[](0),
                 depositLimit: 0,
                 delegatorIndex: 3,
@@ -533,7 +532,7 @@ contract VotingPowerProviderTest is InitSetupTest {
                 owner: getOperator(0).addr,
                 collateral: initSetupParams.masterChain.tokens[0],
                 burner: 0x000000000000000000000000000000000000dEaD,
-                epochDuration: votingPowerProvider.getSlashingWindow(),
+                epochDuration: minVaultEpochDuration,
                 whitelistedDepositors: new address[](0),
                 depositLimit: 0,
                 delegatorIndex: 2,
@@ -557,7 +556,7 @@ contract VotingPowerProviderTest is InitSetupTest {
                 ISymbioticVault.InitParams({
                     collateral: initSetupParams.masterChain.tokens[0],
                     burner: 0x000000000000000000000000000000000000dEaD,
-                    epochDuration: votingPowerProvider.getSlashingWindow(),
+                    epochDuration: minVaultEpochDuration,
                     depositWhitelist: false,
                     isDepositLimit: false,
                     depositLimit: 0,
@@ -580,12 +579,13 @@ contract VotingPowerProviderTest is InitSetupTest {
         address[] memory operatorNetworkSharesSetRoleHolders = new address[](1);
         operatorNetworkSharesSetRoleHolders[0] = address(this);
 
+        (bool requireSlasher, uint48 minVaultEpochDuration) = votingPowerProvider.getSlashingData();
         address opVault = _getVault_SymbioticCore(
             VaultParams({
                 owner: operator1,
                 collateral: initSetupParams.masterChain.tokens[0],
                 burner: 0x000000000000000000000000000000000000dEaD,
-                epochDuration: votingPowerProvider.getSlashingWindow() * 2,
+                epochDuration: minVaultEpochDuration * 2,
                 whitelistedDepositors: new address[](0),
                 depositLimit: 0,
                 delegatorIndex: 2,
@@ -631,12 +631,13 @@ contract VotingPowerProviderTest is InitSetupTest {
     function test_RegisterOperatorVault_RevertIfOperatorNotRegistered() public {
         address operator3 = address(0x777);
         _registerOperator_SymbioticCore(symbioticCore, operator3);
+        (bool requireSlasher, uint48 minVaultEpochDuration) = votingPowerProvider.getSlashingData();
         address opVault = _getVault_SymbioticCore(
             VaultParams({
                 owner: operator3,
                 collateral: initSetupParams.masterChain.tokens[0],
                 burner: 0x000000000000000000000000000000000000dEaD,
-                epochDuration: votingPowerProvider.getSlashingWindow() * 2,
+                epochDuration: minVaultEpochDuration * 2,
                 whitelistedDepositors: new address[](0),
                 depositLimit: 0,
                 delegatorIndex: 2,
@@ -662,12 +663,13 @@ contract VotingPowerProviderTest is InitSetupTest {
     function test_DistributeRewards() public {}
 
     function test_ValidateVault() public {
+        (bool requireSlasher, uint48 minVaultEpochDuration) = votingPowerProvider.getSlashingData();
         address someVault = _getVault_SymbioticCore(
             VaultParams({
                 owner: operator1,
                 collateral: initSetupParams.masterChain.tokens[0],
                 burner: 0x000000000000000000000000000000000000dEaD,
-                epochDuration: votingPowerProvider.getSlashingWindow() * 2,
+                epochDuration: minVaultEpochDuration * 2,
                 whitelistedDepositors: new address[](0),
                 depositLimit: 0,
                 delegatorIndex: 2,
@@ -684,7 +686,8 @@ contract VotingPowerProviderTest is InitSetupTest {
         assertTrue(ok, "should pass validation");
     }
 
-    function test_ValidateVaultEpochDurationFailsIfLessThanSlashingWindow() public {
+    function test_ValidateVaultSlashingFailsIfLessThanMinVaultEpochDuration() public {
+        (bool requireSlasher, uint48 minVaultEpochDuration) = votingPowerProvider.getSlashingData();
         address shortVault = _getVault_SymbioticCore(
             VaultParams({
                 owner: operator1,
@@ -704,7 +707,7 @@ contract VotingPowerProviderTest is InitSetupTest {
         votingPowerProvider.registerToken(initSetupParams.masterChain.tokens[0]);
 
         bool ok = votingPowerProvider.validateVault(shortVault);
-        assertFalse(ok, "should fail since 50 < slashingWindow=100");
+        assertFalse(ok, "should fail since 50 < minVaultEpochDuration=100");
     }
 
     function test_Location() public {
@@ -714,6 +717,7 @@ contract VotingPowerProviderTest is InitSetupTest {
     }
 
     function test_CheckStakes() public {
+        (bool requireSlasher, uint48 minVaultEpochDuration) = votingPowerProvider.getSlashingData();
         votingPowerProvider =
             new TestVotingPowerProvider(address(symbioticCore.operatorRegistry), address(symbioticCore.vaultFactory));
 
@@ -724,7 +728,8 @@ contract VotingPowerProviderTest is InitSetupTest {
             .VotingPowerProviderInitParams({
             networkManagerInitParams: netInit,
             ozEip712InitParams: IOzEIP712.OzEIP712InitParams({name: "MyVotingPowerProvider", version: "1"}),
-            slashingWindow: 100,
+            requireSlasher: true,
+            minVaultEpochDuration: 100,
             token: initSetupParams.masterChain.tokens[0]
         });
 
@@ -757,7 +762,7 @@ contract VotingPowerProviderTest is InitSetupTest {
                     owner: operator.addr,
                     collateral: initSetupParams.masterChain.tokens[0],
                     burner: 0x000000000000000000000000000000000000dEaD,
-                    epochDuration: votingPowerProvider.getSlashingWindow() * 2,
+                    epochDuration: minVaultEpochDuration * 2,
                     whitelistedDepositors: new address[](0),
                     depositLimit: 0,
                     delegatorIndex: 2,
@@ -857,7 +862,7 @@ contract VotingPowerProviderTest is InitSetupTest {
                         owner: getOperator(0).addr,
                         collateral: address(1),
                         burner: 0x000000000000000000000000000000000000dEaD,
-                        epochDuration: votingPowerProvider.getSlashingWindow() * 2,
+                        epochDuration: minVaultEpochDuration * 2,
                         whitelistedDepositors: new address[](0),
                         depositLimit: 0,
                         delegatorIndex: 2,
@@ -918,12 +923,13 @@ contract VotingPowerProviderTest is InitSetupTest {
     function test_RegisterOperator() public {
         votingPowerProvider.registerToken(initSetupParams.masterChain.tokens[0]);
 
+        (bool requireSlasher, uint48 minVaultEpochDuration) = votingPowerProvider.getSlashingData();
         address vault = _getVault_SymbioticCore(
             VaultParams({
                 owner: getOperator(0).addr,
                 collateral: initSetupParams.masterChain.tokens[0],
                 burner: 0x000000000000000000000000000000000000dEaD,
-                epochDuration: votingPowerProvider.getSlashingWindow() * 2,
+                epochDuration: minVaultEpochDuration * 2,
                 whitelistedDepositors: new address[](0),
                 depositLimit: 0,
                 delegatorIndex: 2,
@@ -960,13 +966,13 @@ contract VotingPowerProviderTest is InitSetupTest {
 
     function test_RegisterOperatorVaultExternal() public {
         votingPowerProvider.registerToken(initSetupParams.masterChain.tokens[0]);
-
+        (bool requireSlasher, uint48 minVaultEpochDuration) = votingPowerProvider.getSlashingData();
         address vault = _getVault_SymbioticCore(
             VaultParams({
                 owner: getOperator(0).addr,
                 collateral: initSetupParams.masterChain.tokens[0],
                 burner: 0x000000000000000000000000000000000000dEaD,
-                epochDuration: votingPowerProvider.getSlashingWindow() * 2,
+                epochDuration: minVaultEpochDuration * 2,
                 whitelistedDepositors: new address[](0),
                 depositLimit: 0,
                 delegatorIndex: 2,
@@ -1003,7 +1009,7 @@ contract VotingPowerProviderTest is InitSetupTest {
 
     function test_registerOperatorWithSignature() public {
         votingPowerProvider.registerToken(initSetupParams.masterChain.tokens[0]);
-
+        (bool requireSlasher, uint48 minVaultEpochDuration) = votingPowerProvider.getSlashingData();
         address operatorAddr = getOperator(0).addr;
         uint256 operatorPk = getOperator(0).privateKey;
 
@@ -1014,7 +1020,7 @@ contract VotingPowerProviderTest is InitSetupTest {
                 owner: operatorAddr,
                 collateral: initSetupParams.masterChain.tokens[0],
                 burner: 0x000000000000000000000000000000000000dEaD,
-                epochDuration: votingPowerProvider.getSlashingWindow() * 2,
+                epochDuration: minVaultEpochDuration * 2,
                 whitelistedDepositors: new address[](0),
                 depositLimit: 0,
                 delegatorIndex: 2,
@@ -1047,14 +1053,14 @@ contract VotingPowerProviderTest is InitSetupTest {
     function test_registerOperatorWithSignature_RevertIfInvalidSig() public {
         address operatorAddr = getOperator(0).addr;
         uint256 operatorPk = getOperator(0).privateKey;
-
+        (bool requireSlasher, uint48 minVaultEpochDuration) = votingPowerProvider.getSlashingData();
         uint256 wrongPk = 0x999999999;
         address someVault = _getVault_SymbioticCore(
             VaultParams({
                 owner: operatorAddr,
                 collateral: initSetupParams.masterChain.tokens[0],
                 burner: 0x000000000000000000000000000000000000dEaD,
-                epochDuration: votingPowerProvider.getSlashingWindow() * 2,
+                epochDuration: minVaultEpochDuration * 2,
                 whitelistedDepositors: new address[](0),
                 depositLimit: 0,
                 delegatorIndex: 2,

@@ -51,17 +51,22 @@ contract TestOpNetVaultAutoDeploy is
         super._registerOperatorImpl(operator);
     }
 
-    function setSlashingWindow(
-        uint48 slashingWindow
-    ) public {
-        _setSlashingWindow(slashingWindow);
+    function _unregisterOperatorVaultImpl(
+        address operator,
+        address vault
+    ) internal override(OpNetVaultAutoDeploy, VotingPowerProvider) {
+        super._unregisterOperatorVaultImpl(operator, vault);
+    }
+
+    function setSlashingData(bool requireSlasher, uint48 minVaultEpochDuration) public {
+        _setSlashingData(requireSlasher, minVaultEpochDuration);
     }
 }
 
 contract OpNetVaultAutoDeployTest is Test, InitSetupTest {
     TestOpNetVaultAutoDeploy deployer;
     address operator1;
-    uint48 slashingWindow = 100;
+    uint48 minVaultEpochDuration = 100;
 
     IOpNetVaultAutoDeploy.AutoDeployConfig validConfig;
 
@@ -99,13 +104,14 @@ contract OpNetVaultAutoDeployTest is Test, InitSetupTest {
             .VotingPowerProviderInitParams({
             networkManagerInitParams: netInit,
             ozEip712InitParams: IOzEIP712.OzEIP712InitParams({name: "Auto", version: "1"}),
-            slashingWindow: slashingWindow,
+            requireSlasher: true,
+            minVaultEpochDuration: minVaultEpochDuration,
             token: initSetupParams.masterChain.tokens[0]
         });
         validConfig = IOpNetVaultAutoDeploy.AutoDeployConfig({
             collateral: initSetupParams.masterChain.tokens[0],
             burner: address(0x1),
-            epochDuration: slashingWindow,
+            epochDuration: minVaultEpochDuration,
             withSlasher: true,
             isBurnerHook: true
         });
@@ -162,9 +168,10 @@ contract OpNetVaultAutoDeployTest is Test, InitSetupTest {
         deployer.setAutoDeployConfig(cfg);
     }
 
-    function test_SetAutoDeployConfig_InvalidEpochDurationLessThanWindow() public {
+    function test_SetAutoDeployConfig_InvalidEpochDurationLessThanMinVaultEpochDuration() public {
+        (bool requireSlasher, uint48 minVaultEpochDuration) = deployer.getSlashingData();
         IOpNetVaultAutoDeploy.AutoDeployConfig memory cfg = validConfig;
-        cfg.epochDuration = uint48(slashingWindow - 1);
+        cfg.epochDuration = uint48(minVaultEpochDuration - 1);
         vm.expectRevert(IOpNetVaultAutoDeploy.OpNetVaultAutoDeploy_InvalidEpochDuration.selector);
         deployer.setAutoDeployConfig(cfg);
     }
@@ -177,7 +184,7 @@ contract OpNetVaultAutoDeployTest is Test, InitSetupTest {
     }
 
     function test_SetAutoDeployConfig_InvalidBurnerHook() public {
-        deployer.setSlashingWindow(0);
+        deployer.setSlashingData(false, 0);
         IOpNetVaultAutoDeploy.AutoDeployConfig memory cfg = validConfig;
         cfg.isBurnerHook = true;
         cfg.withSlasher = false;
@@ -206,11 +213,20 @@ contract OpNetVaultAutoDeployTest is Test, InitSetupTest {
         vm.stopPrank();
         address v2 = deployer.getAutoDeployedVault(operator1);
         assertEq(v, v2);
+        vaults = deployer.getOperatorVaults(operator1);
         assertEq(vaults.length, 1);
+
+        vm.startPrank(operator1);
+        deployer.unregisterOperatorVault(operator1, v);
+        vm.stopPrank();
+        address v3 = deployer.getAutoDeployedVault(operator1);
+        assertEq(v3, address(0));
+        vaults = deployer.getOperatorVaults(operator1);
+        assertEq(vaults.length, 0);
     }
 
     function test_AutoDeployOnRegister_WithoutSlasher() public {
-        deployer.setSlashingWindow(0);
+        deployer.setSlashingData(false, 0);
         validConfig.withSlasher = false;
         validConfig.isBurnerHook = false;
         deployer.setAutoDeployConfig(validConfig);

@@ -76,6 +76,26 @@ interface IBaseSlashing {
     }
 
     /**
+     * @notice The hints to optimize the base slashing.
+     * @param slashingDataHint The hint to optimize the slashing data fetching.
+     * @param slashCoreHints The hints to optimize the slash core.
+     */
+    struct SlashHints {
+        bytes slashingDataHint;
+        bytes slashCoreHints;
+    }
+
+    /**
+     * @notice The hints to optimize the execute slash.
+     * @param slashingDataHint The hint to optimize the slashing data fetching.
+     * @param executeSlashCoreHints The hints to optimize the execute slash core.
+     */
+    struct ExecuteSlashHints {
+        bytes slashingDataHint;
+        bytes executeSlashCoreHints;
+    }
+
+    /**
      * @notice Emitted when the slasher is set.
      * @param slasher The address of the slasher.
      */

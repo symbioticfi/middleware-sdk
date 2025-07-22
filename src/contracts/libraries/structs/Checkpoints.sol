@@ -24,12 +24,12 @@ library Checkpoints {
 
     struct Trace256 {
         OZCheckpoints.Trace208 _trace;
-        uint256[] _values;
+        mapping(uint208 pointer => uint256 value) _values;
     }
 
     struct Trace512 {
         OZCheckpoints.Trace208 _trace;
-        uint256[2][] _values;
+        mapping(uint208 pointer => uint256[2] value) _values;
     }
 
     struct Checkpoint256 {
@@ -197,19 +197,15 @@ library Checkpoints {
      * Returns previous value and new value.
      */
     function push(Trace256 storage self, uint48 key, uint256 value) internal returns (uint256, uint256) {
-        if (self._values.length == 0) {
-            self._values.push(0);
-        }
+        (bool exists, uint48 lastKey, uint208 lastPointer) = self._trace.latestCheckpoint();
 
-        (bool exists, uint48 lastKey,) = self._trace.latestCheckpoint();
-
-        uint256 len = self._values.length;
         uint256 lastValue = latest(self);
         if (exists && key == lastKey) {
-            self._values[len - 1] = value;
+            self._values[lastPointer] = value;
         } else {
-            self._trace.push(key, uint208(len));
-            self._values.push(value);
+            uint208 newPointer = lastPointer + 1;
+            self._trace.push(key, newPointer);
+            self._values[newPointer] = value;
         }
 
         return (lastValue, value);
@@ -327,7 +323,7 @@ library Checkpoints {
     function latestCheckpoint(
         Trace256 storage self
     ) internal view returns (bool exists, uint48 _key, uint256 _value) {
-        uint256 idx;
+        uint208 idx;
         (exists, _key, idx) = self._trace.latestCheckpoint();
         _value = exists ? self._values[idx] : 0;
     }
@@ -361,7 +357,7 @@ library Checkpoints {
         }
         value = self._values[idx];
         self._trace._checkpoints.pop();
-        self._values.pop();
+        delete self._values[idx];
     }
 
     /**
@@ -374,19 +370,15 @@ library Checkpoints {
         uint48 key,
         uint256[2] memory value
     ) internal returns (uint256[2] memory, uint256[2] memory) {
-        if (self._values.length == 0) {
-            self._values.push([0, 0]);
-        }
+        (bool exists, uint48 lastKey, uint208 lastPointer) = self._trace.latestCheckpoint();
 
-        (bool exists, uint48 lastKey,) = self._trace.latestCheckpoint();
-
-        uint256 len = self._values.length;
         uint256[2] memory lastValue = latest(self);
         if (exists && key == lastKey) {
-            self._values[len - 1] = value;
+            self._values[lastPointer] = value;
         } else {
-            self._trace.push(key, uint208(len));
-            self._values.push(value);
+            uint208 newPointer = lastPointer + 1;
+            self._trace.push(key, newPointer);
+            self._values[newPointer] = value;
         }
 
         return (lastValue, value);
@@ -508,7 +500,7 @@ library Checkpoints {
     function latestCheckpoint(
         Trace512 storage self
     ) internal view returns (bool exists, uint48 _key, uint256[2] memory _value) {
-        uint256 idx;
+        uint208 idx;
         (exists, _key, idx) = self._trace.latestCheckpoint();
         _value = exists ? self._values[idx] : [uint256(0), 0];
     }
@@ -542,7 +534,7 @@ library Checkpoints {
         }
         value = self._values[idx];
         self._trace._checkpoints.pop();
-        self._values.pop();
+        delete self._values[idx];
     }
 
     /**

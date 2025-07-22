@@ -48,7 +48,8 @@ contract MultiTokenTest is InitSetupTest {
             .VotingPowerProviderInitParams({
             networkManagerInitParams: netInit,
             ozEip712InitParams: IOzEIP712.OzEIP712InitParams({name: "MyVotingPowerProvider", version: "1"}),
-            slashingWindow: 100,
+            requireSlasher: true,
+            minVaultEpochDuration: 100,
             token: initSetupParams.masterChain.tokens[0]
         });
 

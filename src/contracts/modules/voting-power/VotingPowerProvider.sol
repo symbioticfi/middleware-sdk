@@ -9,6 +9,7 @@ import {SignatureChecker} from "@openzeppelin/contracts/utils/cryptography/Signa
 import {IVotingPowerProvider} from "../../../interfaces/modules/voting-power/IVotingPowerProvider.sol";
 
 import {NoncesUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/NoncesUpgradeable.sol";
+import {MulticallUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/MulticallUpgradeable.sol";
 
 import {NetworkManager} from "../base/NetworkManager.sol";
 
@@ -22,6 +23,7 @@ abstract contract VotingPowerProvider is
     OzEIP712,
     PermissionManager,
     NoncesUpgradeable,
+    MulticallUpgradeable,
     IVotingPowerProvider
 {
     /**
@@ -54,8 +56,15 @@ abstract contract VotingPowerProvider is
     /**
      * @inheritdoc IVotingPowerProvider
      */
-    function getSlashingWindow() public view virtual returns (uint48) {
-        return VotingPowerProviderLogic.getSlashingWindow();
+    function getSlashingDataAt(uint48 timestamp, bytes memory hint) public view virtual returns (bool, uint48) {
+        return VotingPowerProviderLogic.getSlashingDataAt(timestamp, hint);
+    }
+
+    /**
+     * @inheritdoc IVotingPowerProvider
+     */
+    function getSlashingData() public view virtual returns (bool, uint48) {
+        return VotingPowerProviderLogic.getSlashingData();
     }
 
     /**
@@ -346,7 +355,7 @@ abstract contract VotingPowerProvider is
      */
     function registerOperatorWithSignature(address operator, bytes memory signature) public virtual {
         _verifyEIP712(
-            operator, keccak256(abi.encode(REGISTER_OPERATOR_TYPEHASH, operator, _useNonce(operator))), signature
+            operator, keccak256(abi.encode(REGISTER_OPERATOR_TYPEHASH, operator, nonces(operator))), signature
         );
         _registerOperatorImpl(operator);
     }
@@ -355,7 +364,7 @@ abstract contract VotingPowerProvider is
      * @inheritdoc IVotingPowerProvider
      */
     function unregisterOperator() public virtual {
-        _unregisterOperator(msg.sender);
+        _unregisterOperatorImpl(msg.sender);
     }
 
     /**
@@ -363,9 +372,9 @@ abstract contract VotingPowerProvider is
      */
     function unregisterOperatorWithSignature(address operator, bytes memory signature) public virtual {
         _verifyEIP712(
-            operator, keccak256(abi.encode(UNREGISTER_OPERATOR_TYPEHASH, operator, _useNonce(operator))), signature
+            operator, keccak256(abi.encode(UNREGISTER_OPERATOR_TYPEHASH, operator, nonces(operator))), signature
         );
-        _unregisterOperator(operator);
+        _unregisterOperatorImpl(operator);
     }
 
     /**
@@ -375,10 +384,8 @@ abstract contract VotingPowerProvider is
         _useNonce(msg.sender);
     }
 
-    function _setSlashingWindow(
-        uint48 slashingWindow
-    ) internal virtual {
-        VotingPowerProviderLogic.setSlashingWindow(slashingWindow);
+    function _setSlashingData(bool requireSlasher, uint48 minVaultEpochDuration) internal virtual {
+        VotingPowerProviderLogic.setSlashingData(requireSlasher, minVaultEpochDuration);
     }
 
     function _registerToken(
@@ -429,6 +436,22 @@ abstract contract VotingPowerProvider is
         address operator
     ) internal virtual {
         _registerOperator(operator);
+        _useNonce(operator);
+    }
+
+    function _unregisterOperatorImpl(
+        address operator
+    ) internal virtual {
+        _unregisterOperator(operator);
+        _useNonce(operator);
+    }
+
+    function _registerOperatorVaultImpl(address operator, address vault) internal virtual {
+        _registerOperatorVault(operator, vault);
+    }
+
+    function _unregisterOperatorVaultImpl(address operator, address vault) internal virtual {
+        _unregisterOperatorVault(operator, vault);
     }
 
     function _verifyEIP712(address operator, bytes32 structHash, bytes memory signature) internal view {

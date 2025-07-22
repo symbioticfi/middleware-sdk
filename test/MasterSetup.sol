@@ -97,7 +97,8 @@ contract MasterSetupTest is InitSetupTest {
                     subnetworkID: networkSetupParams.SUBNETWORK_ID
                 }),
                 ozEip712InitParams: IOzEIP712.OzEIP712InitParams({name: "VotingPowerProvider", version: "1"}),
-                slashingWindow: networkSetupParams.SLASHING_WINDOW,
+                requireSlasher: true,
+                minVaultEpochDuration: networkSetupParams.SLASHING_WINDOW,
                 token: initSetupParams.masterChain.tokens[0]
             }),
             IOzOwnable.OzOwnableInitParams({owner: vars.network.addr}),
@@ -162,6 +163,8 @@ contract MasterSetupTest is InitSetupTest {
                 vars.deployer.addr
             );
         }
+
+        masterSetupParams.settlement.grantRole(masterSetupParams.settlement.SET_GENESIS_ROLE(), vars.deployer.addr);
         vm.stopPrank();
 
         vm.startPrank(vars.deployer.addr);

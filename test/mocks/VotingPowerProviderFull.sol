@@ -55,4 +55,11 @@ contract VotingPowerProviderFull is
     ) internal override(OperatorsBlacklist, OperatorsWhitelist, VotingPowerProvider, OpNetVaultAutoDeploy) {
         super._registerOperatorImpl(operator);
     }
+
+    function _unregisterOperatorVaultImpl(
+        address operator,
+        address vault
+    ) internal override(VotingPowerProvider, OpNetVaultAutoDeploy) {
+        super._unregisterOperatorVaultImpl(operator, vault);
+    }
 }

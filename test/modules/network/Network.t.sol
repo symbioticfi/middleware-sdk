@@ -210,6 +210,8 @@ contract NetworkTest is MasterSetupTest {
         myNetwork.execute(address(myNetwork), 0, callData, bytes32(0), bytes32("salt42"));
 
         assertEq(myNetwork.getMinDelay(address(this), abi.encodeWithSelector(FOO_SEL)), newDelay);
+        vm.expectRevert(INetwork.InvalidTargetAndSelector.selector);
+        myNetwork.getMinDelay(address(0), abi.encodeWithSelector(FOO_SEL));
         assertEq(
             myNetwork.getMinDelay(
                 address(myNetwork),
@@ -218,6 +220,46 @@ contract NetworkTest is MasterSetupTest {
                 )
             ),
             newDelay
+        );
+    }
+
+    function test_UpdateDelayThroughTimelock_ZeroSelector() public {
+        uint256 newDelay = 5 days;
+        bytes memory callData = abi.encodeWithSelector(
+            bytes4(keccak256("updateDelay(address,bytes4,bool,uint256)")), address(this), bytes4(0), true, newDelay
+        );
+
+        vm.prank(proposer);
+        myNetwork.schedule(address(myNetwork), 0, callData, bytes32(0), bytes32("salt42"), GLOBAL_MIN_DELAY);
+
+        vm.prank(proposer);
+        vm.expectRevert();
+        myNetwork.schedule(address(myNetwork), 0, callData, bytes32(0), bytes32("salt42"), GLOBAL_MIN_DELAY);
+
+        vm.warp(vm.getBlockTimestamp() + GLOBAL_MIN_DELAY);
+        vm.prank(executor);
+        myNetwork.execute(address(myNetwork), 0, callData, bytes32(0), bytes32("salt42"));
+
+        assertEq(myNetwork.getMinDelay(address(this), abi.encodeWithSelector(bytes4(0))), newDelay);
+        assertEq(
+            myNetwork.getMinDelay(
+                address(myNetwork),
+                abi.encodeWithSelector(
+                    bytes4(keccak256("updateDelay(address,bytes4,bool,uint256)")), address(this), bytes4(0), false, 0
+                )
+            ),
+            newDelay
+        );
+        vm.expectRevert(INetwork.InvalidTargetAndSelector.selector);
+        myNetwork.getMinDelay(
+            address(myNetwork),
+            abi.encodeWithSelector(
+                bytes4(keccak256("updateDelay(address,bytes4,bool,uint256)")),
+                address(myNetwork),
+                bytes4(keccak256("updateDelay(address,bytes4,bool,uint256)")),
+                false,
+                0
+            )
         );
     }
 
@@ -263,7 +305,7 @@ contract NetworkTest is MasterSetupTest {
 
     function test_GetMinDelayInvalidSelectorReverts() public {
         vm.expectRevert(INetwork.InvalidDataLength.selector);
-        myNetwork.getMinDelay(address(0), "");
+        myNetwork.getMinDelay(address(0), new bytes(1));
     }
 
     function test_ScheduleBatchLengthMismatchReverts() public {

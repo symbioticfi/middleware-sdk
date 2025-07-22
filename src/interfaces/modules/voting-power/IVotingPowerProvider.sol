@@ -3,6 +3,7 @@ pragma solidity ^0.8.0;
 
 import {INetworkManager} from "../base/INetworkManager.sol";
 import {IOzEIP712} from "../base/IOzEIP712.sol";
+import {Checkpoints} from "../../../contracts/libraries/structs/Checkpoints.sol";
 
 import {PersistentSet} from "../../../contracts/libraries/structs/PersistentSet.sol";
 
@@ -68,11 +69,6 @@ interface IVotingPowerProvider {
     error VotingPowerProvider_InvalidToken();
 
     /**
-     * @notice The error thrown when the slashing window is greater than the current one.
-     */
-    error VotingPowerProvider_SlashingWindowTooLarge();
-
-    /**
      * @notice The error thrown when the operator is not registered in the OperatorRegistry.
      */
     error VotingPowerProvider_InvalidOperator();
@@ -107,7 +103,7 @@ interface IVotingPowerProvider {
      * @param _sharedVaults The set of the shared vaults.
      * @param _allOperatorVaults The set of the all operator vaults.
      * @param _operatorVaults The mapping from the operator to the set of the operator vaults.
-     * @param _slashingWindow The slashing window.
+     * @param _slashingData The slashing data (if to require slasher, and a minimum epoch duration).
      * @custom:storage-location erc7201:symbiotic.storage.VotingPowerProvider
      */
     struct VotingPowerProviderStorage {
@@ -116,20 +112,22 @@ interface IVotingPowerProvider {
         PersistentSet.AddressSet _sharedVaults;
         PersistentSet.AddressSet _allOperatorVaults;
         mapping(address operator => PersistentSet.AddressSet set) _operatorVaults;
-        uint48 _slashingWindow;
+        Checkpoints.Trace208 _slashingData;
     }
 
     /**
      * @notice The parameters for the initialization of the VotingPowerProvider contract.
      * @param networkManagerInitParams The parameters for the initialization of the NetworkManager contract.
      * @param ozEip712InitParams The parameters for the initialization of the OzEIP712 contract.
-     * @param slashingWindow The slashing window.
+     * @param requireSlasher If to require slashers.
+     * @param minVaultEpochDuration The minimum epoch duration for the vaults.
      * @param token The acceptable token (zero address if not applicable).
      */
     struct VotingPowerProviderInitParams {
         INetworkManager.NetworkManagerInitParams networkManagerInitParams;
         IOzEIP712.OzEIP712InitParams ozEip712InitParams;
-        uint48 slashingWindow;
+        bool requireSlasher;
+        uint48 minVaultEpochDuration;
         address token;
     }
 
@@ -174,10 +172,12 @@ interface IVotingPowerProvider {
     }
 
     /**
-     * @notice Emitted when the slashing window is set.
-     * @param slashingWindow The slashing window.
+     * @notice Emitted when the slashing data is set.
+     * @param requireSlasher If to require slashers.
+     * @param minVaultEpochDuration The minimum epoch duration for the vaults.
+     * @dev It doesn't force non-suitable vaults to unregister.
      */
-    event SetSlashingWindow(uint48 slashingWindow);
+    event SetSlashingData(bool requireSlasher, uint48 minVaultEpochDuration);
 
     /**
      * @notice Emitted when the token is registered.
@@ -241,10 +241,23 @@ interface IVotingPowerProvider {
     function VAULT_FACTORY() external view returns (address);
 
     /**
-     * @notice Returns the slashing window.
-     * @return The slashing window.
+     * @notice Returns the slashing data at a specific timestamp.
+     * @param timestamp The timestamp.
+     * @param hint The hint.
+     * @return requireSlasher If to require slashers.
+     * @return minVaultEpochDuration The minimum epoch duration for the vaults.
      */
-    function getSlashingWindow() external view returns (uint48);
+    function getSlashingDataAt(
+        uint48 timestamp,
+        bytes memory hint
+    ) external view returns (bool requireSlasher, uint48 minVaultEpochDuration);
+
+    /**
+     * @notice Returns the slashing data.
+     * @return requireSlasher If to require slashers.
+     * @return minVaultEpochDuration The minimum epoch duration for the vaults.
+     */
+    function getSlashingData() external view returns (bool requireSlasher, uint48 minVaultEpochDuration);
 
     /**
      * @notice Returns the status of the token registration at a specific timestamp.

@@ -7,6 +7,11 @@ import {ISigVerifier} from "./ISigVerifier.sol";
 
 interface ISigVerifierBlsBn254Simple is ISigVerifier {
     /**
+     * @notice Reverts when the message length is invalid.
+     */
+    error SigVerifierBlsBn254Simple_InvalidMessageLength();
+
+    /**
      * @notice Reverts when the verification is not supported for the given key tag.
      */
     error SigVerifierBlsBn254Simple_UnsupportedKeyTag();

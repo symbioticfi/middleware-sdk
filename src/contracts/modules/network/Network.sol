@@ -25,9 +25,6 @@ contract Network is TimelockControllerUpgradeable, INetwork {
      */
     bytes32 public constant METADATA_URI_UPDATE_ROLE = keccak256("METADATA_URI_UPDATE_ROLE");
 
-    bytes4 internal constant CUSTOM_UPDATE_DELAY_SELECTOR =
-        bytes4(keccak256("updateDelay(address,bytes4,bool,uint256)"));
-
     /**
      * @inheritdoc INetwork
      */
@@ -100,7 +97,7 @@ contract Network is TimelockControllerUpgradeable, INetwork {
      */
     function getMinDelay(address target, bytes memory data) public view virtual returns (uint256) {
         bytes4 selector = _getSelector(data);
-        if (target == address(this) && selector == CUSTOM_UPDATE_DELAY_SELECTOR) {
+        if (target == address(this) && selector == INetwork.updateDelay.selector) {
             (address underlyingTarget, bytes4 underlyingSelector,,) =
                 abi.decode(_getPayload(data), (address, bytes4, bool, uint256));
             _validateUpdateDelayTargetAndSelector(underlyingTarget, underlyingSelector);
@@ -278,17 +275,14 @@ contract Network is TimelockControllerUpgradeable, INetwork {
     }
 
     function _validateTargetAndSelector(address target, bytes4 selector) internal view virtual {
-        if (target == address(0) || selector == bytes4(0)) {
+        if (target == address(0)) {
             revert InvalidTargetAndSelector();
         }
         _validateUpdateDelayTargetAndSelector(target, selector);
     }
 
     function _validateUpdateDelayTargetAndSelector(address target, bytes4 selector) internal view virtual {
-        if (
-            (target == address(0) && selector == bytes4(0))
-                || (target == address(this) && selector == CUSTOM_UPDATE_DELAY_SELECTOR)
-        ) {
+        if (target == address(this) && selector == INetwork.updateDelay.selector) {
             revert InvalidTargetAndSelector();
         }
     }
@@ -296,6 +290,9 @@ contract Network is TimelockControllerUpgradeable, INetwork {
     function _getSelector(
         bytes memory data
     ) internal pure returns (bytes4 selector) {
+        if (data.length == 0) {
+            return 0xEEEEEEEE;
+        }
         if (data.length < 4) {
             revert InvalidDataLength();
         }

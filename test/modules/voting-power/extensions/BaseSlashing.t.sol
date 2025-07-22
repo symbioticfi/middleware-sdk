@@ -127,12 +127,13 @@ contract BaseSlashingTest is MasterSetupTest {
         assertTrue(success, "Slashing should be successful");
         assertEq(response, abi.encode(uint256(100)));
 
+        (bool requireSlasher, uint48 minVaultEpochDuration) = masterSetupParams.votingPowerProvider.getSlashingData();
         address vault = _getVault_SymbioticCore(
             VaultParams({
                 owner: operator,
                 collateral: initSetupParams.masterChain.tokens[0],
                 burner: 0x000000000000000000000000000000000000dEaD,
-                epochDuration: masterSetupParams.votingPowerProvider.getSlashingWindow() + 1,
+                epochDuration: minVaultEpochDuration + 1,
                 whitelistedDepositors: new address[](0),
                 depositLimit: 0,
                 delegatorIndex: 0,
@@ -235,12 +236,13 @@ contract BaseSlashingTest is MasterSetupTest {
 
     function test_SlashVault_VetoSlasher() public {
         address operator = getOperator(0).addr;
+        (bool requireSlasher, uint48 minVaultEpochDuration) = masterSetupParams.votingPowerProvider.getSlashingData();
         address vault = _getVault_SymbioticCore(
             VaultParams({
                 owner: operator,
                 collateral: initSetupParams.masterChain.tokens[0],
                 burner: 0x000000000000000000000000000000000000dEaD,
-                epochDuration: masterSetupParams.votingPowerProvider.getSlashingWindow() + 1,
+                epochDuration: minVaultEpochDuration + 1,
                 whitelistedDepositors: new address[](0),
                 depositLimit: 0,
                 delegatorIndex: 0,

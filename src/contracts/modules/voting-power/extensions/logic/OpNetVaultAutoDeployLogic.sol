@@ -94,6 +94,10 @@ library OpNetVaultAutoDeployLogic {
         (vault, delegator, slasher) = createVault(
             version, address(0), vaultParams, delegatorIndex, delegatorParams, withSlasher, slasherIndex, slasherParams
         );
+        setAutoDeployedVault(operator, vault);
+    }
+
+    function setAutoDeployedVault(address operator, address vault) public {
         _getOpNetVaultAutoDeployStorage()._autoDeployedVault[operator] = vault;
     }
 
@@ -143,11 +147,11 @@ library OpNetVaultAutoDeployLogic {
         if (config.epochDuration == 0) {
             revert IOpNetVaultAutoDeploy.OpNetVaultAutoDeploy_InvalidEpochDuration();
         }
-        uint48 slashingWindow = IVotingPowerProvider(address(this)).getSlashingWindow();
-        if (config.epochDuration < slashingWindow) {
+        (bool requireSlasher, uint48 minVaultEpochDuration) = IVotingPowerProvider(address(this)).getSlashingData();
+        if (config.epochDuration < minVaultEpochDuration) {
             revert IOpNetVaultAutoDeploy.OpNetVaultAutoDeploy_InvalidEpochDuration();
         }
-        if (!config.withSlasher && slashingWindow > 0) {
+        if (requireSlasher && !config.withSlasher) {
             revert IOpNetVaultAutoDeploy.OpNetVaultAutoDeploy_InvalidWithSlasher();
         }
         if (!config.withSlasher && config.isBurnerHook) {

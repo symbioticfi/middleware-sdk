@@ -53,7 +53,8 @@ contract OperatorsJailTest is InitSetupTest {
             .VotingPowerProviderInitParams({
             networkManagerInitParams: netInit,
             ozEip712InitParams: IOzEIP712.OzEIP712InitParams({name: "MyVotingPowerProvider", version: "1"}),
-            slashingWindow: 100,
+            requireSlasher: true,
+            minVaultEpochDuration: 100,
             token: initSetupParams.masterChain.tokens[0]
         });
 
@@ -119,11 +120,6 @@ contract OperatorsJailTest is InitSetupTest {
         vm.stopPrank();
 
         assertTrue(jailOps.isOperatorRegistered(operator1));
-    }
-
-    function test_UnjailOperator_OperatorNotJailed() public {
-        vm.expectRevert(IOperatorsJail.OperatorsJail_OperatorNotJailed.selector);
-        jailOps.unjailOperator(operator1);
     }
 
     function test_Location() public {
