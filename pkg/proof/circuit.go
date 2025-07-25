@@ -207,7 +207,7 @@ func setCircuitData(circuit *Circuit, proveInput ProveInput) {
 	slog.Debug("signed message", "message", proveInput.MessageG1.String())
 	slog.Debug("signed message", "message.X", proveInput.MessageG1.X.String())
 	slog.Debug("signed message", "message.Y", proveInput.MessageG1.Y.String())
-	slog.Debug("mimc hash", "hash", hex.EncodeToString(valsetHash))
+	slog.Debug("MIMC hash", "hash", hex.EncodeToString(valsetHash))
 
 	inputHashInt := new(big.Int).SetBytes(inputHash)
 	mask, _ := big.NewInt(0).SetString("1FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", 16)

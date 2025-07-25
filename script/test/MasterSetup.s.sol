@@ -14,20 +14,19 @@ import {IVotingPowerProvider} from "../../src/interfaces/modules/voting-power/IV
 import {IBaseSlashing} from "../../src/interfaces/modules/voting-power/extensions/IBaseSlashing.sol";
 import {IBaseRewards} from "../../src/interfaces/modules/voting-power/extensions/IBaseRewards.sol";
 
-import {KeyTags} from "../../src/contracts/libraries/utils/KeyTags.sol";
+import {KeyTags} from "../../src/libraries/utils/KeyTags.sol";
 
 import {SigVerifierMock} from "../../test/mocks/SigVerifierMock.sol";
 
-import {KeyTags} from "../../src/contracts/libraries/utils/KeyTags.sol";
-import {KeyEcdsaSecp256k1} from "../../src/contracts/libraries/keys/KeyEcdsaSecp256k1.sol";
-import {KeyBlsBn254, BN254} from "../../src/contracts/libraries/keys/KeyBlsBn254.sol";
+import {KeyTags} from "../../src/libraries/utils/KeyTags.sol";
+import {KeyEcdsaSecp256k1} from "../../src/libraries/keys/KeyEcdsaSecp256k1.sol";
+import {KeyBlsBn254, BN254} from "../../src/libraries/keys/KeyBlsBn254.sol";
 
 import {BN254G2} from "../../test/helpers/BN254G2.sol";
 import "./InitSetup.s.sol";
 
-import {SigVerifierBlsBn254ZK} from "../../src/contracts/modules/settlement/sig-verifiers/SigVerifierBlsBn254ZK.sol";
-import {SigVerifierBlsBn254Simple} from
-    "../../src/contracts/modules/settlement/sig-verifiers/SigVerifierBlsBn254Simple.sol";
+import {SigVerifierBlsBn254ZK} from "../../src/modules/settlement/sig-verifiers/SigVerifierBlsBn254ZK.sol";
+import {SigVerifierBlsBn254Simple} from "../../src/modules/settlement/sig-verifiers/SigVerifierBlsBn254Simple.sol";
 import {Verifier as Verifier_10} from "./data/zk/Verifier_10.sol";
 import {Verifier as Verifier_100} from "./data/zk/Verifier_100.sol";
 import {Verifier as Verifier_1000} from "./data/zk/Verifier_1000.sol";
@@ -99,7 +98,7 @@ contract MasterSetupScript is InitSetupScript {
             IVotingPowerProvider.VotingPowerProviderInitParams({
                 networkManagerInitParams: INetworkManager.NetworkManagerInitParams({
                     network: vars.network.addr,
-                    subnetworkID: networkSetupParams.SUBNETWORK_ID
+                    subnetworkId: networkSetupParams.SUBNETWORK_ID
                 }),
                 ozEip712InitParams: IOzEIP712.OzEIP712InitParams({name: "VotingPowerProvider", version: "1"}),
                 requireSlasher: true,
@@ -163,7 +162,7 @@ contract MasterSetupScript is InitSetupScript {
                 ISettlement.SettlementInitParams({
                     networkManagerInitParams: INetworkManager.NetworkManagerInitParams({
                         network: vars.network.addr,
-                        subnetworkID: networkSetupParams.SUBNETWORK_ID
+                        subnetworkId: networkSetupParams.SUBNETWORK_ID
                     }),
                     ozEip712InitParams: IOzEIP712.OzEIP712InitParams({name: "Middleware", version: "1"}),
                     sigVerifier: localVars.sigVerifier
@@ -210,7 +209,7 @@ contract MasterSetupScript is InitSetupScript {
                 IValSetDriver.ValSetDriverInitParams({
                     networkManagerInitParams: INetworkManager.NetworkManagerInitParams({
                         network: vars.network.addr,
-                        subnetworkID: networkSetupParams.SUBNETWORK_ID
+                        subnetworkId: networkSetupParams.SUBNETWORK_ID
                     }),
                     epochManagerInitParams: IEpochManager.EpochManagerInitParams({
                         epochDuration: networkSetupParams.EPOCH_DURATION,
@@ -255,14 +254,14 @@ contract MasterSetupScript is InitSetupScript {
 
         console2.log("-----------------------------------------------------------------------------------------------");
         uint256 totalVotingPower;
-        console2.log("Registred operators: ", networkSetupParams.OPERATORS_TO_REGISTER);
+        console2.log("Registered operators: ", networkSetupParams.OPERATORS_TO_REGISTER);
         for (uint256 i; i < networkSetupParams.OPERATORS_TO_REGISTER; ++i) {
             Vm.Wallet memory operator = getOperator(i);
             uint256 operatorVotingPower;
-            IVotingPowerProvider.VaultVotingPower[] memory operatorVotingPowers =
+            IVotingPowerProvider.VaultValue[] memory operatorVotingPowers =
                 masterSetupParams.votingPowerProvider.getOperatorVotingPowers(operator.addr, new bytes(0));
             for (uint256 j; j < operatorVotingPowers.length; ++j) {
-                operatorVotingPower += operatorVotingPowers[j].votingPower;
+                operatorVotingPower += operatorVotingPowers[j].value;
             }
             console2.log("  ", operator.addr);
             console2.log("      Voting power: ", operatorVotingPower);

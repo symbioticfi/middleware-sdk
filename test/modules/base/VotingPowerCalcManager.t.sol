@@ -2,7 +2,7 @@
 pragma solidity ^0.8.25;
 
 import "forge-std/Test.sol";
-import {VotingPowerCalcManager} from "../../../src/contracts/modules/voting-power/base/VotingPowerCalcManager.sol";
+import {VotingPowerCalcManager} from "../../../src/modules/voting-power/base/VotingPowerCalcManager.sol";
 
 contract TestVotingPowerCalcManager is VotingPowerCalcManager {
     bool public initialized;

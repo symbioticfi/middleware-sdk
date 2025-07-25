@@ -3,19 +3,17 @@ pragma solidity ^0.8.25;
 
 import "forge-std/Test.sol";
 
-import {VotingPowerProvider} from "../../../../src/contracts/modules/voting-power/VotingPowerProvider.sol";
-import {VotingPowerProviderLogic} from
-    "../../../../src/contracts/modules/voting-power/logic/VotingPowerProviderLogic.sol";
-import {MultiToken} from "../../../../src/contracts/modules/voting-power/extensions/MultiToken.sol";
+import {VotingPowerProvider} from "../../../../src/modules/voting-power/VotingPowerProvider.sol";
+import {VotingPowerProviderLogic} from "../../../../src/modules/voting-power/logic/VotingPowerProviderLogic.sol";
+import {MultiToken} from "../../../../src/modules/voting-power/extensions/MultiToken.sol";
 import {IVotingPowerProvider} from "../../../../src/interfaces/modules/voting-power/IVotingPowerProvider.sol";
 import {INetworkManager} from "../../../../src/interfaces/modules/base/INetworkManager.sol";
 import {IOzEIP712} from "../../../../src/interfaces/modules/base/IOzEIP712.sol";
 import {NoPermissionManager} from "../../../../test/mocks/NoPermissionManager.sol";
-import {EqualStakeVPCalc} from
-    "../../../../src/contracts/modules/voting-power/common/voting-power-calc/EqualStakeVPCalc.sol";
-import {OperatorVaults} from "../../../../src/contracts/modules/voting-power/extensions/OperatorVaults.sol";
+import {EqualStakeVPCalc} from "../../../../src/modules/voting-power/common/voting-power-calc/EqualStakeVPCalc.sol";
+import {OperatorVaults} from "../../../../src/modules/voting-power/extensions/OperatorVaults.sol";
 
-import {BN254} from "../../../../src/contracts/libraries/utils/BN254.sol";
+import {BN254} from "../../../../src/libraries/utils/BN254.sol";
 import "../../../MasterSetup.sol";
 
 import {SlasherMock} from "../../../../test/mocks/SlasherMock.sol";
@@ -89,15 +87,7 @@ contract BaseSlashingTest is MasterSetupTest {
             vaults[0],
             operator,
             100,
-            abi.encode(
-                IBaseSlashing.SlashVaultHints({
-                    operatorRegisteredHint: new bytes(0),
-                    operatorVaultRegisteredHint: new bytes(0),
-                    sharedVaultRegisteredHint: new bytes(0),
-                    isTokenRegisteredHint: new bytes(0),
-                    slashHints: new bytes(0)
-                })
-            )
+            new bytes(0)
         );
 
         assertTrue(success, "Slashing should be successful");
@@ -115,7 +105,7 @@ contract BaseSlashingTest is MasterSetupTest {
         address operator = getOperator(0).addr;
         address[] memory vaults = masterSetupParams.votingPowerProvider.getSharedVaults();
 
-        (bool success, bytes memory response) = slasher.slashVaultUnsafe(
+        (bool success, bytes memory response) = slasher.slashVault(
             address(masterSetupParams.votingPowerProvider),
             uint48(vm.getBlockTimestamp() - 1),
             vaults[0],
@@ -146,88 +136,10 @@ contract BaseSlashingTest is MasterSetupTest {
         );
 
         vm.expectRevert(abi.encodeWithSelector(IBaseSlashing.BaseSlashing_NoSlasher.selector));
-        slasher.slashVaultUnsafe(
+        slasher.slashVault(
             address(masterSetupParams.votingPowerProvider),
             uint48(vm.getBlockTimestamp() - 1),
             vault,
-            operator,
-            100,
-            new bytes(0)
-        );
-    }
-
-    function test_SlashVault_UnregisteredOperatorSlash() public {
-        address operator = getOperator(0).addr;
-        vm.startPrank(operator);
-        masterSetupParams.votingPowerProvider.unregisterOperator();
-        vm.stopPrank();
-
-        vm.warp(vm.getBlockTimestamp() + 1);
-
-        SlasherMock slasher = new SlasherMock();
-
-        vm.prank(vars.deployer.addr);
-        masterSetupParams.votingPowerProvider.setSlasher(address(slasher));
-
-        address[] memory vaults = masterSetupParams.votingPowerProvider.getSharedVaults();
-
-        vm.expectRevert(abi.encodeWithSelector(IBaseSlashing.BaseSlashing_UnregisteredOperatorSlash.selector));
-        slasher.slashVault(
-            address(masterSetupParams.votingPowerProvider),
-            uint48(vm.getBlockTimestamp() - 1),
-            vaults[0],
-            operator,
-            100,
-            new bytes(0)
-        );
-    }
-
-    function test_SlashVault_UnregisteredVaultSlash() public {
-        address operator = getOperator(0).addr;
-        address[] memory vaults = masterSetupParams.votingPowerProvider.getSharedVaults();
-
-        vm.startPrank(vars.deployer.addr);
-        masterSetupParams.votingPowerProvider.unregisterSharedVault(vaults[0]);
-        vm.stopPrank();
-
-        vm.warp(vm.getBlockTimestamp() + 1);
-
-        SlasherMock slasher = new SlasherMock();
-
-        vm.prank(vars.deployer.addr);
-        masterSetupParams.votingPowerProvider.setSlasher(address(slasher));
-
-        vm.expectRevert(abi.encodeWithSelector(IBaseSlashing.BaseSlashing_UnregisteredVaultSlash.selector));
-        slasher.slashVault(
-            address(masterSetupParams.votingPowerProvider),
-            uint48(vm.getBlockTimestamp() - 1),
-            vaults[0],
-            operator,
-            100,
-            new bytes(0)
-        );
-    }
-
-    function test_SlashVault_UnregisteredTokenSlash() public {
-        address operator = getOperator(0).addr;
-        address[] memory vaults = masterSetupParams.votingPowerProvider.getSharedVaults();
-
-        vm.startPrank(vars.deployer.addr);
-        masterSetupParams.votingPowerProvider.unregisterToken(initSetupParams.masterChain.tokens[0]);
-        vm.stopPrank();
-
-        vm.warp(vm.getBlockTimestamp() + 1);
-
-        SlasherMock slasher = new SlasherMock();
-
-        vm.prank(vars.deployer.addr);
-        masterSetupParams.votingPowerProvider.setSlasher(address(slasher));
-
-        vm.expectRevert(abi.encodeWithSelector(IBaseSlashing.BaseSlashing_UnregisteredTokenSlash.selector));
-        slasher.slashVault(
-            address(masterSetupParams.votingPowerProvider),
-            uint48(vm.getBlockTimestamp() - 1),
-            vaults[0],
             operator,
             100,
             new bytes(0)

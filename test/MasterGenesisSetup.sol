@@ -24,6 +24,7 @@ contract MasterGenesisSetupTest is MasterSetupTest {
         bytes32 previousHeaderHash;
         uint256 quorumThreshold;
         uint8 requiredKeyTag;
+        uint256 totalVotingPower;
         bytes32 validatorsSszMRoot;
         uint8 version;
     }
@@ -32,7 +33,7 @@ contract MasterGenesisSetupTest is MasterSetupTest {
         SYMBIOTIC_CORE_PROJECT_ROOT = "lib/core/";
         MasterSetupTest.setUp();
 
-        vm.warp(masterSetupParams.valSetDriver.getEpochStart(0, new bytes(0)) + 1);
+        vm.warp(masterSetupParams.valSetDriver.getEpochStart(0) + 1);
 
         vm.startBroadcast(vars.deployer.privateKey);
         (ISettlement.ValSetHeader memory valSetHeader, ISettlement.ExtraData[] memory extraData) = loadGenesis();
@@ -47,7 +48,7 @@ contract MasterGenesisSetupTest is MasterSetupTest {
         uint256 totalVotingPower;
         for (uint256 i; i < votingPowers.length; ++i) {
             for (uint256 j; j < votingPowers[i].vaults.length; ++j) {
-                totalVotingPower += votingPowers[i].vaults[j].votingPower;
+                totalVotingPower += votingPowers[i].vaults[j].value;
             }
         }
         uint256 quorumThreshold;
@@ -84,6 +85,7 @@ contract MasterGenesisSetupTest is MasterSetupTest {
             epoch: genesis.header.epoch,
             captureTimestamp: genesis.header.captureTimestamp,
             quorumThreshold: genesis.header.quorumThreshold,
+            totalVotingPower: genesis.header.totalVotingPower,
             validatorsSszMRoot: genesis.header.validatorsSszMRoot,
             previousHeaderHash: genesis.header.previousHeaderHash
         });

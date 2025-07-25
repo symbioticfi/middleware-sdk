@@ -3,7 +3,7 @@ pragma solidity ^0.8.25;
 
 import "forge-std/Test.sol";
 
-import {OzEIP712} from "../../../src/contracts/modules/base/OzEIP712.sol";
+import {OzEIP712} from "../../../src/modules/base/OzEIP712.sol";
 import {IOzEIP712} from "../../../src/interfaces/modules/base/IOzEIP712.sol";
 import {ECDSA} from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 

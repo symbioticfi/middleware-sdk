@@ -5,9 +5,7 @@ import "forge-std/Test.sol";
 import {NoPermissionManager} from "../../../../test/mocks/NoPermissionManager.sol";
 
 contract TestNoPermissionManager is NoPermissionManager {
-    function initialize() external initializer {
-        __NoPermissionManager_init();
-    }
+    function initialize() external initializer {}
 
     function actionRequiringNoPermission() external checkPermission {}
 }

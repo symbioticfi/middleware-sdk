@@ -5,7 +5,7 @@ pragma solidity ^0.8.20;
 
 import {Test} from "forge-std/Test.sol";
 import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
-import {Checkpoints} from "../../../src/contracts/libraries/structs/Checkpoints.sol";
+import {Checkpoints} from "../../../src/libraries/structs/Checkpoints.sol";
 
 contract CheckpointsTrace208Test is Test {
     using Checkpoints for Checkpoints.Trace208;
@@ -130,6 +130,7 @@ contract CheckpointsTrace208Test is Test {
         }
 
         assertEq(_ckpts.upperLookupRecent(lookup), upper);
+        assertEq(_ckpts.upperLookupRecent(lookup, new bytes(0)), upper);
     }
 
     function testUpperLookupRecentWithHint(
@@ -292,12 +293,16 @@ contract CheckpointsTrace208Test is Test {
         assertEq(checkpoint._value, values[index % values.length]);
     }
 
+    function pop() external {
+        _ckpts.pop();
+    }
+
     // Test pop
     function testPop(uint48[] memory keys, uint208[] memory values) public {
-        vm.assume(values.length > 0 && values.length <= keys.length);
+        vm.assume(values.length <= keys.length);
         _prepareKeys(keys, _KEY_MAX_GAP);
 
-        for (uint256 i = 0; i < keys.length; ++i) {
+        for (uint256 i = 0; i < values.length; ++i) {
             _ckpts.push(keys[i], values[i % values.length]);
         }
 
@@ -305,7 +310,7 @@ contract CheckpointsTrace208Test is Test {
 
         if (initialLength == 0) {
             vm.expectRevert();
-            _ckpts.pop();
+            this.pop();
             return;
         }
 
@@ -439,6 +444,7 @@ contract CheckpointsTrace256Test is Test {
         }
 
         assertEq(_ckpts.upperLookupRecent(lookup), upper);
+        assertEq(_ckpts.upperLookupRecent(lookup, new bytes(0)), upper);
     }
 
     function testUpperLookupRecentWithHint(
@@ -601,12 +607,16 @@ contract CheckpointsTrace256Test is Test {
         assertEq(checkpoint._value, values[index % values.length]);
     }
 
+    function pop() external {
+        _ckpts.pop();
+    }
+
     // Test pop
     function testPop(uint48[] memory keys, uint256[] memory values) public {
-        vm.assume(values.length > 0 && values.length <= keys.length);
+        vm.assume(values.length <= keys.length);
         _prepareKeys(keys, _KEY_MAX_GAP);
 
-        for (uint256 i = 0; i < keys.length; ++i) {
+        for (uint256 i = 0; i < values.length; ++i) {
             _ckpts.push(keys[i], values[i % values.length]);
         }
 
@@ -614,7 +624,7 @@ contract CheckpointsTrace256Test is Test {
 
         if (initialLength == 0) {
             vm.expectRevert();
-            _ckpts.pop();
+            this.pop();
             return;
         }
 
@@ -642,7 +652,7 @@ contract CheckpointsTrace512Test is Test {
         _assertEqPair(_value, value);
     }
 
-    function testPush512(uint48[] memory keys, uint256[] memory values, uint48 pastKey) public {
+    function testPush(uint48[] memory keys, uint256[] memory values, uint48 pastKey) public {
         vm.assume(values.length > 0 && values.length <= keys.length);
 
         _prepareKeys(keys, 64);
@@ -680,7 +690,7 @@ contract CheckpointsTrace512Test is Test {
                 pastKey = _boundUint48(pastKey, 0, lastKey - 1);
 
                 vm.expectRevert();
-                this.push512(pastKey, [uint256(999), uint256(999)]);
+                this.push(pastKey, [uint256(999), uint256(999)]);
             }
         }
 
@@ -695,17 +705,19 @@ contract CheckpointsTrace512Test is Test {
         _assertEqPair(newVal2, lastValBeforePop);
     }
 
-    function push512(uint48 key, uint256[2] memory value) external {
+    function push(uint48 key, uint256[2] memory value) external {
         _ckpts.push(key, value);
     }
 
-    function testLookup512(uint48[] memory keys, uint256[] memory values, uint48 lookup) public {
+    function testLookup(uint48[] memory keys, uint256[] memory values, uint48 lookup) public {
         vm.assume(values.length > 0 && values.length <= keys.length);
         _prepareKeys(keys, 64);
 
         if (keys.length == 0) {
             assertEq(_ckpts.upperLookupRecent(lookup)[0], 0);
             assertEq(_ckpts.upperLookupRecent(lookup)[1], 0);
+            assertEq(_ckpts.upperLookupRecent(lookup, new bytes(0))[0], 0);
+            assertEq(_ckpts.upperLookupRecent(lookup, new bytes(0))[1], 0);
             return;
         }
 
@@ -724,11 +736,11 @@ contract CheckpointsTrace512Test is Test {
             }
         }
 
-        uint256[2] memory result = _ckpts.upperLookupRecent(lookup);
-        _assertEqPair(result, upperVal);
+        _assertEqPair(_ckpts.upperLookupRecent(lookup), upperVal);
+        _assertEqPair(_ckpts.upperLookupRecent(lookup, new bytes(0)), upperVal);
     }
 
-    function testUpperLookupRecentWithHint512(
+    function testUpperLookupRecentWithHint(
         uint48[] memory keys,
         uint256[] memory values,
         uint48 lookup,
@@ -753,7 +765,7 @@ contract CheckpointsTrace512Test is Test {
         _assertEqPair(resultWithHint, resultWithoutHint);
     }
 
-    function testUpperLookupRecentCheckpoint512(uint48[] memory keys, uint256[] memory values, uint48 lookup) public {
+    function testUpperLookupRecentCheckpoint(uint48[] memory keys, uint256[] memory values, uint48 lookup) public {
         vm.assume(values.length > 0 && values.length <= keys.length);
         _prepareKeys(keys, 64);
 
@@ -785,7 +797,7 @@ contract CheckpointsTrace512Test is Test {
         }
     }
 
-    function testUpperLookupRecentCheckpointWithHint512(
+    function testUpperLookupRecentCheckpointWithHint(
         uint48[] memory keys,
         uint256[] memory values,
         uint48 lookup,
@@ -817,7 +829,7 @@ contract CheckpointsTrace512Test is Test {
         }
     }
 
-    function testLatest512(uint48[] memory keys, uint256[] memory values) public {
+    function testLatest(uint48[] memory keys, uint256[] memory values) public {
         vm.assume(values.length > 0 && values.length <= keys.length);
         _prepareKeys(keys, 64);
 
@@ -831,7 +843,7 @@ contract CheckpointsTrace512Test is Test {
         }
     }
 
-    function testLatestCheckpoint512(uint48[] memory keys, uint256[] memory values) public {
+    function testLatestCheckpoint(uint48[] memory keys, uint256[] memory values) public {
         vm.assume(values.length > 0 && values.length <= keys.length);
         _prepareKeys(keys, 64);
 
@@ -847,7 +859,7 @@ contract CheckpointsTrace512Test is Test {
         }
     }
 
-    function testLength512(uint48[] memory keys, uint256[] memory values) public {
+    function testLength(uint48[] memory keys, uint256[] memory values) public {
         vm.assume(values.length > 0 && values.length <= keys.length);
         _prepareKeys(keys, 64);
 
@@ -862,7 +874,7 @@ contract CheckpointsTrace512Test is Test {
         }
     }
 
-    function testAt512(uint48[] memory keys, uint256[] memory values, uint32 index) public {
+    function testAt(uint48[] memory keys, uint256[] memory values, uint32 index) public {
         vm.assume(values.length > 0 && values.length <= keys.length);
         _prepareKeysUnrepeated(keys, 64);
 
@@ -879,22 +891,27 @@ contract CheckpointsTrace512Test is Test {
         _assertEqPair(checkpoint._value, [values[index % values.length], uint256(index)]);
     }
 
-    function testPop512(uint48[] memory keys, uint256[] memory values) public {
-        vm.assume(values.length > 0 && values.length <= keys.length);
+    function pop() external {
+        _ckpts.pop();
+    }
+
+    function testPop(uint48[] memory keys, uint256[] memory values) public {
+        vm.assume(values.length <= keys.length);
         _prepareKeys(keys, 64);
 
-        for (uint256 i = 0; i < keys.length; ++i) {
+        for (uint256 i = 0; i < values.length; ++i) {
             _ckpts.push(keys[i], [values[i % values.length], i]);
         }
 
         uint256 initialLength = _ckpts.length();
+
         if (initialLength == 0) {
             vm.expectRevert();
-            _ckpts.pop();
+            this.pop();
             return;
         }
 
-        uint256[2] memory lastVal = [values[(keys.length - 1) % values.length], uint256(keys.length - 1)];
+        uint256[2] memory lastVal = [values[(values.length - 1) % values.length], uint256(values.length - 1)];
         uint256[2] memory poppedVal = _ckpts.pop();
         _assertEqPair(poppedVal, lastVal);
 

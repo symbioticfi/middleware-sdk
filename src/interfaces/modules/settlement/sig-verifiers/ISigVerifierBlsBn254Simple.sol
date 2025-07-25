@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import {BN254} from "../../../../contracts/libraries/utils/BN254.sol";
-
 import {ISigVerifier} from "./ISigVerifier.sol";
 
 interface ISigVerifierBlsBn254Simple is ISigVerifier {
@@ -12,9 +10,9 @@ interface ISigVerifierBlsBn254Simple is ISigVerifier {
     error SigVerifierBlsBn254Simple_InvalidMessageLength();
 
     /**
-     * @notice Reverts when the verification is not supported for the given key tag.
+     * @notice Reverts when the non-signer index is greater than the number of validators.
      */
-    error SigVerifierBlsBn254Simple_UnsupportedKeyTag();
+    error SigVerifierBlsBn254Simple_InvalidNonSignerIndex();
 
     /**
      * @notice Reverts when the non-signers' indices are not in the correct order.
@@ -23,14 +21,9 @@ interface ISigVerifierBlsBn254Simple is ISigVerifier {
     error SigVerifierBlsBn254Simple_InvalidNonSignersOrder();
 
     /**
-     * @notice The error is thrown when the number of validators exceeds the maximum allowed for this verification mechanism.
+     * @notice Reverts when the proof length is too short.
      */
-    error SigVerifierBlsBn254Simple_TooManyValidators();
-
-    /**
-     * @notice Reverts when the non-signer index is greater than the number of validators.
-     */
-    error SigVerifierBlsBn254Simple_InvalidNonSignerIndex();
+    error SigVerifierBlsBn254Simple_InvalidProofLength();
 
     /**
      * @notice Reverts when the proof offset is invalid.
@@ -38,21 +31,20 @@ interface ISigVerifierBlsBn254Simple is ISigVerifier {
     error SigVerifierBlsBn254Simple_InvalidProofOffset();
 
     /**
-     * @notice Reverts when the proof length is too short.
+     * @notice Reverts when the number of validators exceeds the maximum allowed for this verification mechanism.
      */
-    error SigVerifierBlsBn254Simple_InvalidProofLength();
+    error SigVerifierBlsBn254Simple_TooManyValidators();
+
+    /**
+     * @notice Reverts when the verification is not supported for the given key tag.
+     */
+    error SigVerifierBlsBn254Simple_UnsupportedKeyTag();
 
     /**
      * @notice Returns the marker for extra data fetching of the validator set keccak256 hash.
      * @return The marker for extra data fetching of the validator set keccak256 hash.
      */
     function VALIDATOR_SET_HASH_KECCAK256_HASH() external view returns (bytes32);
-
-    /**
-     * @notice Returns the marker for extra data fetching of the total voting power.
-     * @return The marker for extra data fetching of the total voting power.
-     */
-    function TOTAL_VOTING_POWER_HASH() external view returns (bytes32);
 
     /**
      * @notice Returns the marker for extra data fetching of the aggregated public key G1.

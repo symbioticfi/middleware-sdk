@@ -1,0 +1,29 @@
+{
+  "lib/chainlink-evm": {
+    "rev": "448d48945910a0e1fcab5abff555c0f8f3d87070"
+  },
+  "lib/forge-std": {
+    "rev": "da591f56d8884c5824c0c1b3103fbcfd81123c4c"
+  },
+  "lib/openzeppelin-contracts": {
+    "tag": {
+      "name": "v5.2.0",
+      "rev": "acd4ff74de833399287ed6b31b4debf6b2b35527"
+    }
+  },
+  "lib/crypto-lib": {
+    "rev": "f2c00ecced1df96fe81894d19a6b8ec754beedb9"
+  },
+  "lib/core": {
+    "rev": "9d18fda6202924a7857dc5bdb834da9f7dc90a39"
+  },
+  "lib/rewards": {
+    "rev": "b5a1f5b46f33f31938fc0116086b3a75e748c8b1"
+  },
+  "lib/openzeppelin-contracts-upgradeable": {
+    "tag": {
+      "name": "v5.2.0",
+      "rev": "3d5fa5c24c411112bab47bec25cfa9ad0af0e6e8"
+    }
+  }
+}

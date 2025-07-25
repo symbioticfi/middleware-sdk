@@ -3,14 +3,14 @@ pragma solidity ^0.8.0;
 
 interface IBaseRewards {
     /**
-     * @notice The error thrown when the caller is not the rewarder.
-     */
-    error BaseRewards_NotRewarder();
-
-    /**
-     * @notice The error thrown when the new rewarder is zero address.
+     * @notice Reverts when the new rewarder is zero address.
      */
     error BaseRewards_InvalidRewarder();
+
+    /**
+     * @notice Reverts when the caller is not the rewarder.
+     */
+    error BaseRewards_NotRewarder();
 
     /**
      * @notice The storage of the BaseRewards contract.
@@ -77,6 +77,7 @@ interface IBaseRewards {
      * @param amount The amount of the token.
      * @param data The data (depends on the staker rewards implementation).
      * @dev Only the rewarder can call this function.
+     *      The funds should be transferred to this contract separately before the call.
      */
     function distributeStakerRewards(
         address stakerRewards,
@@ -92,6 +93,7 @@ interface IBaseRewards {
      * @param amount The amount of the token.
      * @param root The Merkle root of the distribution.
      * @dev Only the rewarder can call this function.
+     *      The funds should be transferred to this contract separately before the call.
      */
     function distributeOperatorRewards(address operatorRewards, address token, uint256 amount, bytes32 root) external;
 }

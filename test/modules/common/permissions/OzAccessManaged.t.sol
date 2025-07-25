@@ -2,7 +2,7 @@
 pragma solidity ^0.8.0;
 
 import "forge-std/Test.sol";
-import {OzAccessManaged} from "../../../../src/contracts/modules/common/permissions/OzAccessManaged.sol";
+import {OzAccessManaged} from "../../../../src/modules/common/permissions/OzAccessManaged.sol";
 
 import {IAuthority} from "@openzeppelin/contracts/access/manager/IAuthority.sol";
 

@@ -1,33 +1,17 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import {INetworkManager} from "../../modules/base/INetworkManager.sol";
 import {IEpochManager} from "./IEpochManager.sol";
+import {INetworkManager} from "../../modules/base/INetworkManager.sol";
 
-import {PersistentSet} from "../../../contracts/libraries/structs/PersistentSet.sol";
-import {Checkpoints} from "../../../contracts/libraries/structs/Checkpoints.sol";
+import {Checkpoints} from "../../../libraries/structs/Checkpoints.sol";
+import {PersistentSet} from "../../../libraries/structs/PersistentSet.sol";
 
 interface IValSetDriver {
-    /**
-     * @notice Reverts when the subject is not added but was tried to be removed.
-     */
-    error ValSetDriver_NotAdded();
-
     /**
      * @notice Reverts when the cross-chain address with the same chain ID is already added.
      */
     error ValSetDriver_ChainAlreadyAdded();
-
-    /**
-     * @notice Reverts when the quorum threshold with the same key tag is already added.
-     */
-    error ValSetDriver_KeyTagAlreadyAdded();
-
-    /**
-     * @notice Reverts when the quorum threshold is greater than the maximum quorum threshold.
-     * @dev The maximum quorum threshold is 1e18 = 100%.
-     */
-    error ValSetDriver_InvalidQuorumThreshold();
 
     /**
      * @notice Reverts when the cross-chain address is either zero or has zero chain ID.
@@ -38,6 +22,22 @@ interface IValSetDriver {
      * @notice Reverts when the max validators count is zero.
      */
     error ValSetDriver_InvalidMaxValidatorsCount();
+
+    /**
+     * @notice Reverts when the quorum threshold is greater than the maximum quorum threshold.
+     * @dev The maximum quorum threshold is 1e18 = 100%.
+     */
+    error ValSetDriver_InvalidQuorumThreshold();
+
+    /**
+     * @notice Reverts when the quorum threshold with the same key tag is already added.
+     */
+    error ValSetDriver_KeyTagAlreadyAdded();
+
+    /**
+     * @notice Reverts when the subject is not added but was tried to be removed.
+     */
+    error ValSetDriver_NotAdded();
 
     /**
      * @notice The storage of the ValSetDriver contract.

@@ -1,25 +1,24 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.25;
 
-import {KeyRegistry} from "../../src/contracts/modules/key-registry/KeyRegistry.sol";
+import {KeyRegistry} from "../../src/modules/key-registry/KeyRegistry.sol";
 
 import {IKeyRegistry} from "../../src/interfaces/modules/key-registry/IKeyRegistry.sol";
 
-import {Time} from "@openzeppelin/contracts/utils/types/Time.sol";
 import {MulticallUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/MulticallUpgradeable.sol";
 
-import {OzEIP712} from "../../src/contracts/modules/base/OzEIP712.sol";
+import {OzEIP712} from "../../src/modules/base/OzEIP712.sol";
 
-import {Checkpoints} from "../../src/contracts/libraries/structs/Checkpoints.sol";
-import {InputNormalizer} from "../../src/contracts/libraries/utils/InputNormalizer.sol";
-import {PersistentSet} from "../../src/contracts/libraries/structs/PersistentSet.sol";
+import {Checkpoints} from "../../src/libraries/structs/Checkpoints.sol";
+import {InputNormalizer} from "../../src/libraries/utils/InputNormalizer.sol";
+import {PersistentSet} from "../../src/libraries/structs/PersistentSet.sol";
 
-import {KeyTags} from "../../src/contracts/libraries/utils/KeyTags.sol";
-import {KeyBlsBn254} from "../../src/contracts/libraries/keys/KeyBlsBn254.sol";
-import {KeyEcdsaSecp256k1} from "../../src/contracts/libraries/keys/KeyEcdsaSecp256k1.sol";
+import {KeyTags} from "../../src/libraries/utils/KeyTags.sol";
+import {KeyBlsBn254} from "../../src/libraries/keys/KeyBlsBn254.sol";
+import {KeyEcdsaSecp256k1} from "../../src/libraries/keys/KeyEcdsaSecp256k1.sol";
 
-import {SigBlsBn254} from "../../src/contracts/libraries/sigs/SigBlsBn254.sol";
-import {SigEcdsaSecp256k1} from "../../src/contracts/libraries/sigs/SigEcdsaSecp256k1.sol";
+import {SigBlsBn254} from "../../src/libraries/sigs/SigBlsBn254.sol";
+import {SigEcdsaSecp256k1} from "../../src/libraries/sigs/SigEcdsaSecp256k1.sol";
 
 uint8 constant KEY_TYPE_KEY64 = 2;
 
@@ -35,18 +34,13 @@ contract KeyRegistryWithKey64 is KeyRegistry {
     using InputNormalizer for bytes[][];
     using PersistentSet for PersistentSet.AddressSet;
 
-    function getKeyAt(
-        address operator,
-        uint8 tag,
-        uint48 timestamp,
-        bytes memory hint
-    ) public view override returns (bytes memory) {
+    function getKeyAt(address operator, uint8 tag, uint48 timestamp) public view override returns (bytes memory) {
         if (tag.getType() == KEY_TYPE_KEY64) {
-            bytes memory key = _getKey64At(operator, tag, timestamp, hint);
+            bytes memory key = _getKey64At(operator, tag, timestamp);
             (bytes32 key1, bytes32 key2) = abi.decode(key, (bytes32, bytes32));
             return abi.encode(~key1, ~key2);
         }
-        return super.getKeyAt(operator, tag, timestamp, hint);
+        return super.getKeyAt(operator, tag, timestamp);
     }
 
     function getKey(address operator, uint8 tag) public view override returns (bytes memory) {

@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.25;
 
-import {ValSetDriver} from "../src/contracts/modules/valset-driver/ValSetDriver.sol";
-import {OzAccessControl} from "../src/contracts/modules/common/permissions/OzAccessControl.sol";
+import {ValSetDriver} from "../src/modules/valset-driver/ValSetDriver.sol";
+import {OzAccessControl} from "../src/modules/common/permissions/OzAccessControl.sol";
 
 import {IEpochManager} from "../src/interfaces/modules/valset-driver/IEpochManager.sol";
 import {IValSetDriver} from "../src/interfaces/modules/valset-driver/IValSetDriver.sol";
@@ -26,7 +26,6 @@ contract MyValSetDriver is ValSetDriver, OzAccessControl {
         address defaultAdmin
     ) public virtual initializer {
         __ValSetDriver_init(valSetDriverInitParams);
-        __OzAccessControl_init();
 
         _grantRole(DEFAULT_ADMIN_ROLE, defaultAdmin);
 

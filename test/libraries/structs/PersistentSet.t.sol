@@ -2,7 +2,7 @@
 pragma solidity ^0.8.20;
 
 import "forge-std/Test.sol";
-import {PersistentSet} from "../../../src/contracts/libraries/structs/PersistentSet.sol";
+import {PersistentSet} from "../../../src/libraries/structs/PersistentSet.sol";
 import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 
 contract PersistentSetTest is Test {
@@ -277,7 +277,7 @@ contract PersistentSetTest is Test {
 
     function test_RevertPersistentSet_InvalidKey() public {
         addressSet.add(100, address(0x123));
-        vm.expectRevert(PersistentSet.PersistentSet_InvalidKey.selector);
+        vm.expectRevert(PersistentSet.InvalidKey.selector);
         this.remove(99, address(0x123));
 
         this.remove(100, address(0x123));

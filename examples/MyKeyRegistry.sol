@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.25;
 
-import {KeyRegistry} from "../src/contracts/modules/key-registry/KeyRegistry.sol";
+import {KeyRegistry} from "../src/modules/key-registry/KeyRegistry.sol";
 
 contract MyKeyRegistry is KeyRegistry {
     function initialize(

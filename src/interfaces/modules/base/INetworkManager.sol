@@ -2,6 +2,9 @@
 pragma solidity ^0.8.0;
 
 interface INetworkManager {
+    /**
+     * @notice Reverts when the network is zero address.
+     */
     error NetworkManager_InvalidNetwork();
 
     /**
@@ -19,20 +22,20 @@ interface INetworkManager {
     /**
      * @notice The parameters for the initialization of the NetworkManager contract.
      * @param network The address of the network.
-     * @param subnetworkID The identifier of the subnetwork.
+     * @param subnetworkId The identifier of the subnetwork.
      * @dev `network` is not obligated to be registered in NetworkRegistry contract, it can be any non-zero address.
      */
     struct NetworkManagerInitParams {
         address network;
-        uint96 subnetworkID;
+        uint96 subnetworkId;
     }
 
     /**
      * @notice Emitted during the NetworkManager initialization.
      * @param network The address of the network.
-     * @param subnetworkID The identifier of the subnetwork.
+     * @param subnetworkId The identifier of the subnetwork.
      */
-    event InitSubnetwork(address network, uint96 subnetworkID);
+    event InitSubnetwork(address network, uint96 subnetworkId);
 
     /**
      * @notice Returns the address of the network.

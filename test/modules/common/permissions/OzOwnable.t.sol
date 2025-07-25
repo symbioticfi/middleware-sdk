@@ -2,7 +2,7 @@
 pragma solidity ^0.8.25;
 
 import "forge-std/Test.sol";
-import {OzOwnable} from "../../../../src/contracts/modules/common/permissions/OzOwnable.sol";
+import {OzOwnable} from "../../../../src/modules/common/permissions/OzOwnable.sol";
 
 contract TestOzOwnable is OzOwnable {
     function initialize(

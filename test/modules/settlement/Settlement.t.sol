@@ -3,10 +3,10 @@ pragma solidity ^0.8.25;
 
 import {Test} from "forge-std/Test.sol";
 
-import {KeyTags} from "../../../src/contracts/libraries/utils/KeyTags.sol";
-import {KeyEcdsaSecp256k1} from "../../../src/contracts/libraries/keys/KeyEcdsaSecp256k1.sol";
-import {KeyBlsBn254, BN254} from "../../../src/contracts/libraries/keys/KeyBlsBn254.sol";
-import {SigBlsBn254} from "../../../src/contracts/libraries/sigs/SigBlsBn254.sol";
+import {KeyTags} from "../../../src/libraries/utils/KeyTags.sol";
+import {KeyEcdsaSecp256k1} from "../../../src/libraries/keys/KeyEcdsaSecp256k1.sol";
+import {KeyBlsBn254, BN254} from "../../../src/libraries/keys/KeyBlsBn254.sol";
+import {SigBlsBn254} from "../../../src/libraries/sigs/SigBlsBn254.sol";
 
 import {BN254G2} from "../../helpers/BN254G2.sol";
 
@@ -16,17 +16,16 @@ import {MasterGenesisSetupTest} from "../../MasterGenesisSetup.sol";
 
 import {console2} from "forge-std/console2.sol";
 
-import {SigVerifierBlsBn254ZK} from "../../../src/contracts/modules/settlement/sig-verifiers/SigVerifierBlsBn254ZK.sol";
+import {SigVerifierBlsBn254ZK} from "../../../src/modules/settlement/sig-verifiers/SigVerifierBlsBn254ZK.sol";
 
 import {Bytes} from "@openzeppelin/contracts/utils/Bytes.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
-import {Settlement} from "../../../src/contracts/modules/settlement/Settlement.sol";
+import {Settlement} from "../../../src/modules/settlement/Settlement.sol";
 
 import {IOzEIP712} from "../../../src/interfaces/modules/base/IOzEIP712.sol";
 import {INetworkManager} from "../../../src/interfaces/modules/base/INetworkManager.sol";
 import {SigVerifierMock} from "../../mocks/SigVerifierMock.sol";
-import {SigVerifierBlsBn254Simple} from
-    "../../../src/contracts/modules/settlement/sig-verifiers/SigVerifierBlsBn254Simple.sol";
+import {SigVerifierBlsBn254Simple} from "../../../src/modules/settlement/sig-verifiers/SigVerifierBlsBn254Simple.sol";
 import {SigVerifierFalseMock} from "../../mocks/SigVerifierFalseMock.sol";
 
 contract SettlementTest is MasterGenesisSetupTest {
@@ -114,7 +113,7 @@ contract SettlementTest is MasterGenesisSetupTest {
     //     uint256 signersVotingPower = 0;
     //     for (uint256 i; i < votingPowers.length; ++i) {
     //         for (uint256 j; j < votingPowers[i].vaults.length; ++j) {
-    //             signersVotingPower += votingPowers[i].vaults[j].votingPower;
+    //             signersVotingPower += votingPowers[i].vaults[j].value;
     //         }
     //     }
 
@@ -157,7 +156,7 @@ contract SettlementRawTest is Test {
 
         testSettle = new TestSettlement();
 
-        vm.expectRevert(ISettlement.Settlement_NoCheckpoint.selector);
+        vm.expectRevert();
         testSettle.getSigVerifier();
 
         {
@@ -167,7 +166,7 @@ contract SettlementRawTest is Test {
 
             INetworkManager.NetworkManagerInitParams memory netInit;
             netInit.network = address(0xDEF);
-            netInit.subnetworkID = 999;
+            netInit.subnetworkId = 999;
 
             initParams.ozEip712InitParams = eip712;
             initParams.networkManagerInitParams = netInit;
@@ -185,8 +184,9 @@ contract SettlementRawTest is Test {
             epoch: 0,
             captureTimestamp: uint48(vm.getBlockTimestamp()) - 1,
             quorumThreshold: 1000,
+            totalVotingPower: 1501,
             validatorsSszMRoot: bytes32(uint256(0xAAA)),
-            previousHeaderHash: 0x868e09d528a16744c1f38ea3c10cc2251e01a456434f91172247695087d129b7
+            previousHeaderHash: 0xd397b3b043d87fcd6fad1291ff0bfd16401c274896d8c63a923727f077b8e0b5
         });
         someExtra.push(ISettlement.ExtraData({key: bytes32(uint256(0xCCC)), value: bytes32(uint256(0xBBB))}));
     }
@@ -241,6 +241,16 @@ contract SettlementRawTest is Test {
             testSettle.getQuorumThresholdFromValSetHeaderAt(sampleHeader.epoch),
             sampleHeader.quorumThreshold,
             "ValSet quorumThreshold mismatch after setGenesis"
+        );
+        assertEq(
+            testSettle.getTotalVotingPowerFromValSetHeader(),
+            sampleHeader.totalVotingPower,
+            "ValSet totalVotingPower mismatch after setGenesis"
+        );
+        assertEq(
+            testSettle.getTotalVotingPowerFromValSetHeaderAt(sampleHeader.epoch),
+            sampleHeader.totalVotingPower,
+            "ValSet totalVotingPower mismatch after setGenesis"
         );
         assertEq(
             testSettle.getRequiredKeyTagFromValSetHeader(),
@@ -307,7 +317,7 @@ contract SettlementRawTest is Test {
         );
         assertEq(
             stored.previousHeaderHash,
-            0x868e09d528a16744c1f38ea3c10cc2251e01a456434f91172247695087d129b7,
+            0xd397b3b043d87fcd6fad1291ff0bfd16401c274896d8c63a923727f077b8e0b5,
             "ValSet previousHeaderHash mismatch after setGenesis"
         );
 
@@ -325,7 +335,7 @@ contract SettlementRawTest is Test {
         );
         assertEq(
             stored.previousHeaderHash,
-            0x868e09d528a16744c1f38ea3c10cc2251e01a456434f91172247695087d129b7,
+            0xd397b3b043d87fcd6fad1291ff0bfd16401c274896d8c63a923727f077b8e0b5,
             "ValSet previousHeaderHash mismatch after setGenesis"
         );
     }
@@ -380,6 +390,11 @@ contract SettlementRawTest is Test {
 
         header.previousHeaderHash = testSettle.getValSetHeaderHash();
 
+        header.validatorsSszMRoot = bytes32(0);
+        vm.expectRevert(ISettlement.Settlement_InvalidValidatorsSszMRoot.selector);
+        testSettle.commitValSetHeader(header, someExtra, bytes(""));
+        header.validatorsSszMRoot = sampleHeader.validatorsSszMRoot;
+
         testSettle.commitValSetHeader(header, someExtra, bytes(""));
     }
 
@@ -408,6 +423,11 @@ contract SettlementRawTest is Test {
     }
 
     function test_commitValSetHeader_VerificationFailed() public {
+        ISettlement.ValSetHeader memory header = sampleHeader;
+
+        vm.expectRevert(ISettlement.Settlement_VerificationFailed.selector);
+        testSettle.commitValSetHeader(header, someExtra, bytes(""));
+
         vm.prank(owner);
         testSettle.setGenesis(sampleHeader, someExtra);
 
@@ -417,11 +437,18 @@ contract SettlementRawTest is Test {
 
         vm.warp(vm.getBlockTimestamp() + 1);
 
-        ISettlement.ValSetHeader memory header = sampleHeader;
+        assertFalse(testSettle.verifyQuorumSigAt(new bytes(0), 0, 0, new bytes(0), 1, new bytes(0)));
 
         header.epoch = 1;
         header.captureTimestamp = uint48(vm.getBlockTimestamp() - 1);
         header.previousHeaderHash = testSettle.getValSetHeaderHash();
+
+        someExtra.push(ISettlement.ExtraData({key: someExtra[0].key, value: someExtra[0].value}));
+        vm.expectRevert(ISettlement.Settlement_DuplicateExtraDataKey.selector);
+        testSettle.commitValSetHeader(header, someExtra, bytes(""));
+
+        someExtra.pop();
+
         testSettle.commitValSetHeader(header, someExtra, bytes(""));
 
         vm.warp(vm.getBlockTimestamp() + 1);

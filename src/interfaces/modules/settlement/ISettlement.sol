@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 import {INetworkManager} from "../../modules/base/INetworkManager.sol";
 import {IOzEIP712} from "../../modules/base/IOzEIP712.sol";
 
-import {Checkpoints} from "../../../contracts/libraries/structs/Checkpoints.sol";
+import {Checkpoints} from "../../../libraries/structs/Checkpoints.sol";
 
 interface ISettlement {
     /**
@@ -13,20 +13,10 @@ interface ISettlement {
     error Settlement_DuplicateExtraDataKey();
 
     /**
-     * @notice Reverts when the version to be committed is not the same as the version inside the contract.
-     * @dev Can be triggered during the upgrades.
+     * @notice Reverts when the capture timestamp is less than or equal to the capture timestamp of the latest committed header,
+     *         or greater than or equal to the current timestamp.
      */
-    error Settlement_InvalidVersion();
-
-    /**
-     * @notice Reverts when the quorum signature verification fails.
-     */
-    error Settlement_VerificationFailed();
-
-    /**
-     * @notice Reverts when the validator set header is already committed for the proposed epoch.
-     */
-    error Settlement_ValSetHeaderAlreadyCommitted();
+    error Settlement_InvalidCaptureTimestamp();
 
     /**
      * @notice Reverts when the proposed during the commit epoch is less than or equal to the latest committed one.
@@ -34,10 +24,9 @@ interface ISettlement {
     error Settlement_InvalidEpoch();
 
     /**
-     * @notice Reverts when the capture timestamp is less than or equal to the capture timestamp of the latest committed header,
-     *         or greater than or equal to the current timestamp.
+     * @notice Reverts when the proposed previous header hash is not the same as the hash of the latest committed header.
      */
-    error Settlement_InvalidCaptureTimestamp();
+    error Settlement_InvalidPreviousHeaderHash();
 
     /**
      * @notice Reverts when the new quorum signature verifier is zero.
@@ -45,14 +34,25 @@ interface ISettlement {
     error Settlement_InvalidSigVerifier();
 
     /**
-     * @notice Reverts when the proposed previous header hash is not the same as the hash of the latest committed header.
+     * @notice Reverts when the validator set SSZ root is zero.
      */
-    error Settlement_InvalidPreviousHeaderHash();
+    error Settlement_InvalidValidatorsSszMRoot();
 
     /**
-     * @notice Reverts when the checkpoint is not found for the current time point.
+     * @notice Reverts when the version to be committed is not the same as the version inside the contract.
+     * @dev Can be triggered during the upgrades.
      */
-    error Settlement_NoCheckpoint();
+    error Settlement_InvalidVersion();
+
+    /**
+     * @notice Reverts when the validator set header is already committed for the proposed epoch.
+     */
+    error Settlement_ValSetHeaderAlreadyCommitted();
+
+    /**
+     * @notice Reverts when the quorum signature verification fails.
+     */
+    error Settlement_VerificationFailed();
 
     /**
      * @notice The storage of the Settlement contract.
@@ -88,6 +88,7 @@ interface ISettlement {
      * @param epoch The epoch of the validator set.
      * @param captureTimestamp The capture timestamp of the validator set.
      * @param quorumThreshold The quorum threshold of the validator set header which will need to be reached to commit the next header.
+     * @param totalVotingPower The total voting power of the validator set.
      * @param validatorsSszMRoot The validator set SSZ root.
      * @param previousHeaderHash The previous header hash.
      */
@@ -97,6 +98,7 @@ interface ISettlement {
         uint48 epoch;
         uint48 captureTimestamp;
         uint256 quorumThreshold;
+        uint256 totalVotingPower;
         bytes32 validatorsSszMRoot;
         bytes32 previousHeaderHash;
     }
@@ -265,6 +267,21 @@ interface ISettlement {
     function getQuorumThresholdFromValSetHeader() external view returns (uint256);
 
     /**
+     * @notice Returns the total voting power from the validator set header at the given epoch.
+     * @param epoch The epoch.
+     * @return The total voting power from the validator set header at the given epoch.
+     */
+    function getTotalVotingPowerFromValSetHeaderAt(
+        uint48 epoch
+    ) external view returns (uint256);
+
+    /**
+     * @notice Returns the total voting power from the last committed validator set header.
+     * @return The total voting power from the last committed validator set header.
+     */
+    function getTotalVotingPowerFromValSetHeader() external view returns (uint256);
+
+    /**
      * @notice Returns the validator set SSZ root from the validator set header at the given epoch.
      * @param epoch The epoch.
      * @return The validator set SSZ root from the validator set header at the given epoch.
@@ -368,7 +385,7 @@ interface ISettlement {
      * @param header The validator set header.
      * @param extraData The extra data.
      * @param proof The proof to verify the quorum signature.
-     * @dev The caller can be anyone, the call is validated by verification of the validator set's decision.
+     * @dev The caller can be anyone, the call is validated by verification of the validator set's attestation.
      */
     function commitValSetHeader(
         ValSetHeader calldata header,

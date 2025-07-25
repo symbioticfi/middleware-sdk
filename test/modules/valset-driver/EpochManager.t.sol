@@ -3,9 +3,9 @@ pragma solidity ^0.8.25;
 
 import "forge-std/Test.sol";
 import {NoPermissionManager} from "../../mocks/NoPermissionManager.sol";
-import {EpochManager} from "../../../src/contracts/modules/valset-driver/EpochManager.sol";
+import {EpochManager} from "../../../src/modules/valset-driver/EpochManager.sol";
 import {IEpochManager} from "../../../src/interfaces/modules/valset-driver/IEpochManager.sol";
-import {Checkpoints} from "../../../src/contracts/libraries/structs/Checkpoints.sol";
+import {Checkpoints} from "../../../src/libraries/structs/Checkpoints.sol";
 
 contract TestEpochManager is EpochManager, NoPermissionManager {
     using Checkpoints for Checkpoints.Trace208;
@@ -19,17 +19,15 @@ contract TestEpochManager is EpochManager, NoPermissionManager {
     }
 
     function getEpochDurationDataByTimestamp(
-        uint48 timestamp,
-        bytes memory hint
+        uint48 timestamp
     ) public view returns (uint48, uint48, uint48) {
-        return _getEpochDurationDataByTimestamp(timestamp, hint);
+        return _getEpochDurationDataByTimestamp(timestamp);
     }
 
     function getEpochDurationDataByIndex(
-        uint48 index,
-        bytes memory hint
+        uint48 index
     ) public view returns (uint48, uint48, uint48) {
-        return _getEpochDurationDataByIndex(index, hint);
+        return _getEpochDurationDataByIndex(index);
     }
 
     function getCurrentEpochDurationData() public view returns (uint48, uint48, uint48) {
@@ -68,7 +66,6 @@ contract TestEpochManager is EpochManager, NoPermissionManager {
 contract EpochManagerTest is Test {
     TestEpochManager internal epochManager;
 
-    bytes4 private ERR_NO_CHECKPOINT = IEpochManager.EpochManager_NoCheckpoint.selector;
     bytes4 private ERR_INVALID_EPOCH_DURATION = IEpochManager.EpochManager_InvalidEpochDuration.selector;
     bytes4 private ERR_INVALID_EPOCH_DURATION_TIMESTAMP =
         IEpochManager.EpochManager_InvalidEpochDurationTimestamp.selector;
@@ -78,7 +75,7 @@ contract EpochManagerTest is Test {
     }
 
     function test_Initialize_SetsEpochDuration() public {
-        vm.expectRevert(ERR_NO_CHECKPOINT);
+        vm.expectRevert();
         epochManager.getCurrentEpoch();
 
         uint48 startTime = uint48(vm.getBlockTimestamp()) + 200;
@@ -108,6 +105,25 @@ contract EpochManagerTest is Test {
         assertEq(location, 0xab930e9b836b4d72502da14061937ab080936446173403910135ea983863d400);
     }
 
+    function test_Initialize_SetsEpochDuration_WithZeroTimestamp() public {
+        vm.expectRevert();
+        epochManager.getCurrentEpoch();
+
+        IEpochManager.EpochManagerInitParams memory initParams =
+            IEpochManager.EpochManagerInitParams({epochDuration: 100, epochDurationTimestamp: 0});
+
+        epochManager.initialize(initParams);
+        uint48 currentEpoch = epochManager.getCurrentEpoch();
+        assertEq(currentEpoch, 0, "Initially, epoch should be 0 if we haven't reached startTime");
+
+        uint48 currentEpochStart = epochManager.getCurrentEpochStart();
+        assertEq(currentEpochStart, uint48(vm.getBlockTimestamp()), "Epoch start mismatch");
+
+        assertEq(epochManager.getNextEpoch(), 1);
+        assertEq(epochManager.getNextEpochStart(), uint48(vm.getBlockTimestamp()) + 100);
+        assertEq(epochManager.getNextEpochDuration(), 100);
+    }
+
     function test_Initialize_RevertOnZeroEpochDuration() public {
         IEpochManager.EpochManagerInitParams memory initParams = IEpochManager.EpochManagerInitParams({
             epochDuration: 0,
@@ -119,6 +135,7 @@ contract EpochManagerTest is Test {
     }
 
     function test_Initialize_RevertOnPastTimestamp() public {
+        vm.warp(100);
         IEpochManager.EpochManagerInitParams memory initParams = IEpochManager.EpochManagerInitParams({
             epochDuration: 100,
             epochDurationTimestamp: uint48(vm.getBlockTimestamp() - 1)
@@ -135,7 +152,7 @@ contract EpochManagerTest is Test {
         });
         epochManager.initialize(initParams);
 
-        vm.expectRevert(ERR_NO_CHECKPOINT);
+        vm.expectRevert();
         assertEq(epochManager.getCurrentEpoch(), 0);
         vm.warp(vm.getBlockTimestamp() + 50);
         assertEq(epochManager.getCurrentEpoch(), 0);
@@ -187,7 +204,7 @@ contract EpochManagerTest is Test {
 
         uint48 someFuture = initParams.epochDurationTimestamp + 130;
 
-        uint48 epochIndex = epochManager.getEpochIndex(someFuture, "");
+        uint48 epochIndex = epochManager.getEpochIndex(someFuture);
         assertEq(epochIndex, 2, "Should be epoch #2 for that timestamp");
     }
 
@@ -216,16 +233,16 @@ contract EpochManagerTest is Test {
 
         epochManager.setEpochDuration(100);
 
-        uint48 dur2 = epochManager.getEpochDuration(2, "");
+        uint48 dur2 = epochManager.getEpochDuration(2);
         assertEq(dur2, 50, "epoch #2 is still 50s");
 
-        uint48 dur3 = epochManager.getEpochDuration(3, "");
+        uint48 dur3 = epochManager.getEpochDuration(3);
         assertEq(dur3, 100, "epoch #3 must be 100s now");
 
-        uint48 start2 = epochManager.getEpochStart(2, "");
+        uint48 start2 = epochManager.getEpochStart(2);
         assertEq(start2, startTime + 2 * 50, "Start of epoch #2 mismatch");
 
-        uint48 start3 = epochManager.getEpochStart(3, "");
+        uint48 start3 = epochManager.getEpochStart(3);
         assertEq(start3, startTime + 150, "Start of epoch #3 mismatch");
     }
 
@@ -252,7 +269,7 @@ contract EpochManagerTest is Test {
 
         uint48 midTimestamp = now_ + 50;
         (uint48 duration, uint48 durationTimestamp, uint48 durationIndex) =
-            epochManager.getEpochDurationDataByTimestamp(midTimestamp, "");
+            epochManager.getEpochDurationDataByTimestamp(midTimestamp);
 
         assertEq(duration, 100, "duration mismatch");
         assertEq(durationTimestamp, now_ + 10, "timestamp mismatch");
@@ -265,14 +282,14 @@ contract EpochManagerTest is Test {
             IEpochManager.EpochManagerInitParams({epochDuration: 200, epochDurationTimestamp: now_ + 100});
         epochManager.initialize(initParams);
 
-        (uint48 dur, uint48 durTS, uint48 durIndex) = epochManager.getEpochDurationDataByIndex(0, "");
+        (uint48 dur, uint48 durTS, uint48 durIndex) = epochManager.getEpochDurationDataByIndex(0);
         assertEq(dur, 200);
         assertEq(durTS, now_ + 100);
         assertEq(durIndex, 0);
     }
 
     function test_GetCurrentEpochDurationData() public {
-        vm.expectRevert(ERR_NO_CHECKPOINT);
+        vm.expectRevert();
         epochManager.getCurrentEpochDurationData();
 
         uint48 now_ = uint48(vm.getBlockTimestamp());
@@ -296,21 +313,21 @@ contract EpochManagerTest is Test {
 
         epochManager.setEpochDuration(75, now_ + 200, 3);
 
-        (uint48 dur, uint48 durTS, uint48 durIdx) = epochManager.getEpochDurationDataByIndex(3, "");
+        (uint48 dur, uint48 durTS, uint48 durIdx) = epochManager.getEpochDurationDataByIndex(3);
         assertEq(dur, 75, "Updated duration mismatch");
         assertEq(durTS, now_ + 200, "Updated timestamp mismatch");
         assertEq(durIdx, 3, "Updated index mismatch");
     }
 
     function test_GetCurrentValue_NoCheckpoint() public {
-        vm.expectRevert(ERR_NO_CHECKPOINT);
+        vm.expectRevert();
         epochManager.getCurrentValuePublic(100);
     }
 
     function test_GetCurrentValue_SingleCheckpoint() public {
         epochManager.pushTestCheckpoint(100, 999);
 
-        vm.expectRevert(ERR_NO_CHECKPOINT);
+        vm.expectRevert();
         epochManager.getCurrentValuePublic(99);
 
         uint208 val = epochManager.getCurrentValuePublic(100);

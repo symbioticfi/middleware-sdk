@@ -3,7 +3,7 @@ pragma solidity ^0.8.25;
 
 import "forge-std/Test.sol";
 
-import {ValSetDriver} from "../../../src/contracts/modules/valset-driver/ValSetDriver.sol";
+import {ValSetDriver} from "../../../src/modules/valset-driver/ValSetDriver.sol";
 import {IValSetDriver} from "../../../src/interfaces/modules/valset-driver/IValSetDriver.sol";
 
 import {INetworkManager} from "../../../src/interfaces/modules/base/INetworkManager.sol";
@@ -56,7 +56,7 @@ contract ValSetDriverTest is Test {
         IValSetDriver.QuorumThreshold[] memory quorumThresholds = new IValSetDriver.QuorumThreshold[](1);
         quorumThresholds[0] = IValSetDriver.QuorumThreshold({keyTag: 0x2A, quorumThreshold: uint248(10 ** 18)});
         IValSetDriver.ValSetDriverInitParams memory initParams = IValSetDriver.ValSetDriverInitParams({
-            networkManagerInitParams: INetworkManager.NetworkManagerInitParams({network: address(1), subnetworkID: 0}),
+            networkManagerInitParams: INetworkManager.NetworkManagerInitParams({network: address(1), subnetworkId: 0}),
             epochManagerInitParams: IEpochManager.EpochManagerInitParams({
                 epochDuration: 100,
                 epochDurationTimestamp: uint48(vm.getBlockTimestamp())
@@ -330,6 +330,8 @@ contract ValSetDriverTest is Test {
         vm.startPrank(owner);
         testMCP.setMaxVotingPower(5000);
         testMCP.setMinInclusionVotingPower(123);
+        vm.expectRevert(IValSetDriver.ValSetDriver_InvalidMaxValidatorsCount.selector);
+        testMCP.setMaxValidatorsCount(0);
         testMCP.setMaxValidatorsCount(777);
         uint8[] memory newTags = new uint8[](2);
         newTags[0] = 1;

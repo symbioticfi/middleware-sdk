@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.25;
 
-import {Network} from "../src/contracts/modules/network/Network.sol";
+import {Network} from "../src/modules/network/Network.sol";
 
 contract MyNetwork is Network {
     constructor(

@@ -5,22 +5,22 @@ import {IVotingPowerProvider} from "../IVotingPowerProvider.sol";
 
 interface IOpNetVaultAutoDeploy {
     /**
-     * @notice The error thrown when the epoch duration is zero or less than the slashing window.
-     */
-    error OpNetVaultAutoDeploy_InvalidEpochDuration();
-
-    /**
-     * @notice The error thrown when the collateral is zero address.
-     */
-    error OpNetVaultAutoDeploy_InvalidCollateral();
-
-    /**
-     * @notice The error thrown when the burner hook is enabled but the slasher is not.
+     * @notice Reverts when the burner hook is enabled but the slasher is not.
      */
     error OpNetVaultAutoDeploy_InvalidBurnerHook();
 
     /**
-     * @notice The error thrown when the with slasher is disabled but the slashing window is not zero.
+     * @notice Reverts when the collateral is zero address.
+     */
+    error OpNetVaultAutoDeploy_InvalidCollateral();
+
+    /**
+     * @notice Reverts when the epoch duration is zero or less than the slashing window.
+     */
+    error OpNetVaultAutoDeploy_InvalidEpochDuration();
+
+    /**
+     * @notice Reverts when the with slasher is disabled but the slashing window is not zero.
      */
     error OpNetVaultAutoDeploy_InvalidWithSlasher();
 

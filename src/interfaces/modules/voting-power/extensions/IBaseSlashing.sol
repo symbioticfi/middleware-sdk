@@ -3,44 +3,34 @@ pragma solidity ^0.8.0;
 
 interface IBaseSlashing {
     /**
-     * @notice The error thrown when the slashed operator is not registered.
-     */
-    error BaseSlashing_UnregisteredOperatorSlash();
-
-    /**
-     * @notice The error thrown when the slashed vault is not registered.
-     */
-    error BaseSlashing_UnregisteredVaultSlash();
-
-    /**
-     * @notice The error thrown when the slasher type is unsupported.
-     */
-    error BaseSlashing_UnknownSlasherType();
-
-    /**
-     * @notice The error thrown when the slasher is not a veto slasher.
-     */
-    error BaseSlashing_NotVetoSlasher();
-
-    /**
-     * @notice The error thrown when the vault doesn't have a slasher.
-     */
-    error BaseSlashing_NoSlasher();
-
-    /**
-     * @notice The error thrown when the caller is not the slasher.
-     */
-    error BaseSlashing_NotSlasher();
-
-    /**
-     * @notice The error thrown when the new slasher is zero address.
+     * @notice Reverts when the new slasher is zero address.
      */
     error BaseSlashing_InvalidSlasher();
 
     /**
-     * @notice The error thrown when the unregistered token is slashed.
+     * @notice Reverts when the vault doesn't have a slasher.
      */
-    error BaseSlashing_UnregisteredTokenSlash();
+    error BaseSlashing_NoSlasher();
+
+    /**
+     * @notice Reverts when the slashing wasn't required at the requested timestamp.
+     */
+    error BaseSlashing_NoSlashing();
+
+    /**
+     * @notice Reverts when the caller is not the slasher.
+     */
+    error BaseSlashing_NotSlasher();
+
+    /**
+     * @notice Reverts when the slasher is not a veto slasher.
+     */
+    error BaseSlashing_NotVetoSlasher();
+
+    /**
+     * @notice Reverts when the slasher type is unsupported.
+     */
+    error BaseSlashing_UnknownSlasherType();
 
     /**
      * @notice The storage of the BaseSlashing contract.
@@ -57,22 +47,6 @@ interface IBaseSlashing {
      */
     struct BaseSlashingInitParams {
         address slasher;
-    }
-
-    /**
-     * @notice The hints to optimize the vault slashing.
-     * @param operatorRegisteredHint The hint to optimize the operator registration status fetching.
-     * @param operatorVaultRegisteredHint The hint to optimize the operator vault registration status fetching.
-     * @param sharedVaultRegisteredHint The hint to optimize the shared vault registration status fetching.
-     * @param isTokenRegisteredHint The hint to optimize the token registration status fetching.
-     * @param slashHints The hints to optimize the slash.
-     */
-    struct SlashVaultHints {
-        bytes operatorRegisteredHint;
-        bytes operatorVaultRegisteredHint;
-        bytes sharedVaultRegisteredHint;
-        bytes isTokenRegisteredHint;
-        bytes slashHints;
     }
 
     /**
@@ -154,28 +128,9 @@ interface IBaseSlashing {
      * @param hints The hints to optimize the vault slashing.
      * @return success The success of the slash.
      * @return response The response of the slash.
-     * @dev The function checks the registration statuses of the operator, the vault, and the vault's collateral.
-     */
-    function slashVault(
-        uint48 timestamp,
-        address vault,
-        address operator,
-        uint256 amount,
-        bytes memory hints
-    ) external returns (bool success, bytes memory response);
-
-    /**
-     * @notice Slashes the vault.
-     * @param timestamp The capture timestamp for the slash.
-     * @param vault The address of the vault.
-     * @param operator The address of the operator.
-     * @param amount The amount of the tokens to be slashed.
-     * @param hints The hints to optimize the vault slashing.
-     * @return success The success of the slash.
-     * @return response The response of the slash.
      * @dev The function doesn't check the registration statuses.
      */
-    function slashVaultUnsafe(
+    function slashVault(
         uint48 timestamp,
         address vault,
         address operator,

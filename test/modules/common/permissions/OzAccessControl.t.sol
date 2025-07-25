@@ -2,7 +2,7 @@
 pragma solidity ^0.8.25;
 
 import "forge-std/Test.sol";
-import {OzAccessControl} from "../../../../src/contracts/modules/common/permissions/OzAccessControl.sol";
+import {OzAccessControl} from "../../../../src/modules/common/permissions/OzAccessControl.sol";
 import {IOzAccessControl} from "../../../../src/interfaces/modules/common/permissions/IOzAccessControl.sol";
 import {AccessControlUpgradeable} from "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 
@@ -10,7 +10,6 @@ contract TestOzAccessControl is OzAccessControl {
     bytes32 public constant ADMIN_ROLE = bytes32(0);
 
     function initialize() external initializer {
-        __OzAccessControl_init();
         _grantRole(ADMIN_ROLE, msg.sender);
         _setSelectorRole(TestOzAccessControl.protectedFunction.selector, ADMIN_ROLE);
     }

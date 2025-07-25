@@ -109,15 +109,21 @@ func (p *ZkProver) Verify(valsetLen int, publicInputHash common.Hash, proofBytes
 
 	slog.Debug("[Verify] input hash", "hash", hex.EncodeToString(publicInputHashInt.Bytes()))
 
-	witness, _ := frontend.NewWitness(&assignment, ecc.BN254.ScalarField(), frontend.PublicOnly())
-	publicWitness, _ := witness.Public()
+	witness, err := frontend.NewWitness(&assignment, ecc.BN254.ScalarField(), frontend.PublicOnly())
+	if err != nil {
+		return false, errors.Errorf("failed to create witness: %w", err)
+	}
+	publicWitness, err := witness.Public()
+	if err != nil {
+		return false, errors.Errorf("failed to get public witness: %w", err)
+	}
 
 	rawProofBytes := bytes.Clone(proofBytes[:256])
 	rawProofBytes = append(rawProofBytes, []byte{0, 0, 0, 1}...) //dirty hack
 	rawProofBytes = append(rawProofBytes, proofBytes[256:384]...)
 	reader := bytes.NewReader(rawProofBytes)
 	proof := groth16.NewProof(ecc.BN254)
-	_, err := proof.ReadFrom(reader)
+	_, err = proof.ReadFrom(reader)
 	if err != nil {
 		return false, errors.Errorf("failed to read proof: %w", err)
 	}
@@ -146,8 +152,14 @@ func (p *ZkProver) Prove(proveInput ProveInput) (ProofData, error) {
 	assignment := Circuit{}
 	setCircuitData(&assignment, proveInput)
 
-	witness, _ := frontend.NewWitness(&assignment, ecc.BN254.ScalarField())
-	publicWitness, _ := witness.Public()
+	witness, err := frontend.NewWitness(&assignment, ecc.BN254.ScalarField())
+	if err != nil {
+		return ProofData{}, errors.Errorf("failed to create witness: %w", err)
+	}
+	publicWitness, err := witness.Public()
+	if err != nil {
+		return ProofData{}, errors.Errorf("failed to get public witness: %w", err)
+	}
 
 	// groth16: Prove & Verify
 	proof, err := groth16.Prove(r1cs, pk, witness, backend.WithProverHashToFieldFunction(sha256.New()))
@@ -293,15 +305,24 @@ func loadOrInit(valsetLen int) (constraint.ConstraintSystem, groth16.ProvingKey,
 			os.WriteFile(r1csFile, buf.Bytes(), 0600)
 		}
 		{
-			f, _ := os.Create(pkFile)
+			f, err := os.Create(pkFile)
+			if err != nil {
+				return nil, nil, nil, err
+			}
 			pk_i.WriteRawTo(f)
 			f.Close()
-			f, _ = os.Create(vkFile)
+			f, err = os.Create(vkFile)
+			if err != nil {
+				return nil, nil, nil, err
+			}
 			vk_i.WriteRawTo(f)
 			f.Close()
 		}
 		{
-			f, _ := os.Create(solFile)
+			f, err := os.Create(solFile)
+			if err != nil {
+				return nil, nil, nil, err
+			}
 			vk_i.ExportSolidity(f, solidity.WithHashToFieldFunction(sha256.New()))
 			f.Close()
 		}

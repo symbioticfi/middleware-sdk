@@ -3,9 +3,9 @@ pragma solidity ^0.8.25;
 
 import {Test, console2} from "forge-std/Test.sol";
 
-import {SigBlsBn254} from "../../../src/contracts/libraries/sigs/SigBlsBn254.sol";
-import {KeyBlsBn254} from "../../../src/contracts/libraries/keys/KeyBlsBn254.sol";
-import {BN254} from "../../../src/contracts/libraries/utils/BN254.sol";
+import {SigBlsBn254} from "../../../src/libraries/sigs/SigBlsBn254.sol";
+import {KeyBlsBn254} from "../../../src/libraries/keys/KeyBlsBn254.sol";
+import {BN254} from "../../../src/libraries/utils/BN254.sol";
 import {BN254G2} from "../../helpers/BN254G2.sol";
 
 contract SigBlsBn254Test is Test {
@@ -78,5 +78,28 @@ contract SigBlsBn254Test is Test {
             BN254.G2Point([uint256(0), uint256(0)], [uint256(0), uint256(0)])
         );
         assertFalse(result);
+    }
+
+    function verify(
+        bytes memory keyBytes,
+        bytes memory message,
+        bytes memory signature,
+        bytes memory extraData
+    ) public view returns (bool) {
+        return SigBlsBn254.verify(keyBytes, message, signature, extraData);
+    }
+
+    function test_InvalidMessageLength() public {
+        bytes memory keyBytes = KeyBlsBn254.wrap(BN254.G1Point(0, 0)).toBytes();
+        bytes memory message = bytes("Hello, BLS!");
+        bytes32 hashed = keccak256(message);
+        bytes memory signature = abi.encode(BN254.G1Point(0, 0));
+        vm.expectRevert(SigBlsBn254.SigBlsBn254_InvalidMessageLength.selector);
+        this.verify(
+            keyBytes,
+            abi.encode(hashed, hashed),
+            signature,
+            abi.encode(BN254.G2Point([uint256(0), uint256(0)], [uint256(0), uint256(0)]))
+        );
     }
 }

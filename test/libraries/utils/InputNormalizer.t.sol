@@ -2,7 +2,7 @@
 pragma solidity ^0.8.25;
 
 import "forge-std/Test.sol";
-import {InputNormalizer} from "../../../src/contracts/libraries/utils/InputNormalizer.sol";
+import {InputNormalizer} from "../../../src/libraries/utils/InputNormalizer.sol";
 
 contract InputNormalizerTest is Test {
     function normalizeSingleDim(bytes[] memory arr, uint256 length) public pure returns (bytes[] memory) {
@@ -46,7 +46,7 @@ contract InputNormalizerTest is Test {
         uint256 desiredLength = 2;
         bytes[] memory input = new bytes[](desiredLength + 1);
 
-        vm.expectRevert(InputNormalizer.InvalidLength_InvalidLength.selector);
+        vm.expectRevert(InputNormalizer.InvalidLength.selector);
         this.normalizeSingleDim(input, desiredLength);
     }
 
@@ -89,7 +89,7 @@ contract InputNormalizerTest is Test {
         uint256 desiredLength = 3;
         bytes[][] memory input = new bytes[][](desiredLength + 1);
 
-        vm.expectRevert(InputNormalizer.InvalidLength_InvalidLength.selector);
+        vm.expectRevert(InputNormalizer.InvalidLength.selector);
         this.normalizeDoubleDim(input, desiredLength);
     }
 }

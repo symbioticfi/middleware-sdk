@@ -3,16 +3,15 @@ pragma solidity ^0.8.25;
 
 import "forge-std/Test.sol";
 
-import {MultiToken} from "../../../../src/contracts/modules/voting-power/extensions/MultiToken.sol";
+import {MultiToken} from "../../../../src/modules/voting-power/extensions/MultiToken.sol";
 import {IMultiToken} from "../../../../src/interfaces/modules/voting-power/extensions/IMultiToken.sol";
 import {INetworkManager} from "../../../../src/interfaces/modules/base/INetworkManager.sol";
 import {NoPermissionManager} from "../../../../test/mocks/NoPermissionManager.sol";
-import {EqualStakeVPCalc} from
-    "../../../../src/contracts/modules/voting-power/common/voting-power-calc/EqualStakeVPCalc.sol";
+import {EqualStakeVPCalc} from "../../../../src/modules/voting-power/common/voting-power-calc/EqualStakeVPCalc.sol";
 import {IVotingPowerProvider} from "../../../../src/interfaces/modules/voting-power/IVotingPowerProvider.sol";
 import {IOzEIP712} from "../../../../src/interfaces/modules/base/IOzEIP712.sol";
-import {VotingPowerProvider} from "../../../../src/contracts/modules/voting-power/VotingPowerProvider.sol";
-import {OperatorVaults} from "../../../../src/contracts/modules/voting-power/extensions/OperatorVaults.sol";
+import {VotingPowerProvider} from "../../../../src/modules/voting-power/VotingPowerProvider.sol";
+import {OperatorVaults} from "../../../../src/modules/voting-power/extensions/OperatorVaults.sol";
 
 import "../../../InitSetup.sol";
 
@@ -23,8 +22,6 @@ contract TestMultiToken is NoPermissionManager, EqualStakeVPCalc, MultiToken {
         IVotingPowerProvider.VotingPowerProviderInitParams memory votingPowerProviderInit
     ) external initializer {
         __VotingPowerProvider_init(votingPowerProviderInit);
-
-        __MultiToken_init();
     }
 }
 
@@ -42,7 +39,7 @@ contract MultiTokenTest is InitSetupTest {
         tokens = new TestMultiToken(address(symbioticCore.operatorRegistry), address(symbioticCore.vaultFactory));
 
         INetworkManager.NetworkManagerInitParams memory netInit =
-            INetworkManager.NetworkManagerInitParams({network: vars.network.addr, subnetworkID: IDENTIFIER});
+            INetworkManager.NetworkManagerInitParams({network: vars.network.addr, subnetworkId: IDENTIFIER});
 
         IVotingPowerProvider.VotingPowerProviderInitParams memory votingPowerProviderInit = IVotingPowerProvider
             .VotingPowerProviderInitParams({

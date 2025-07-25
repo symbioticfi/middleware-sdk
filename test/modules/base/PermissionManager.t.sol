@@ -2,7 +2,7 @@
 pragma solidity ^0.8.25;
 
 import "forge-std/Test.sol";
-import {PermissionManager} from "../../../src/contracts/modules/base/PermissionManager.sol";
+import {PermissionManager} from "../../../src/modules/base/PermissionManager.sol";
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
 contract TestPermissionManager is PermissionManager {

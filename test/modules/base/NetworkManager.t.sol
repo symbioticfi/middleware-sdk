@@ -3,14 +3,14 @@ pragma solidity ^0.8.25;
 
 import "forge-std/Test.sol";
 
-import {NetworkManager} from "../../../src/contracts/modules/base/NetworkManager.sol";
+import {NetworkManager} from "../../../src/modules/base/NetworkManager.sol";
 import {INetworkManager} from "../../../src/interfaces/modules/base/INetworkManager.sol";
 
 import {Subnetwork} from "@symbioticfi/core/src/contracts/libraries/Subnetwork.sol";
 
 contract TestNetworkManager is NetworkManager {
     function initialize(address net, uint96 subID) external initializer {
-        NetworkManagerInitParams memory initParams = NetworkManagerInitParams({network: net, subnetworkID: subID});
+        NetworkManagerInitParams memory initParams = NetworkManagerInitParams({network: net, subnetworkId: subID});
         __NetworkManager_init(initParams);
     }
 }
@@ -44,7 +44,7 @@ contract NetworkManagerTest is Test {
 
     function test_DefaultsBeforeInit() public {
         assertEq(nm.NETWORK(), address(0), "Expected default zero address");
-        assertEq(nm.SUBNETWORK_IDENTIFIER(), 0, "Expected default subnetworkID=0");
+        assertEq(nm.SUBNETWORK_IDENTIFIER(), 0, "Expected default subnetworkId=0");
         bytes32 subn = nm.SUBNETWORK();
     }
 

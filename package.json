@@ -3,7 +3,7 @@
   "version": "1.0.0-alpha.0",
   "description": "Symbiotic Relay smart contracts allowing construction of validator set using various mechanics, verification and management of operators' keys of various types, aggregated signatures verification, and validator set's running.",
   "homepage": "https://symbiotic.fi/relay",
-  "bugs": "https://github.com/symbioticfi/middleware-sdk/issues",
+  "bugs": "https://github.com/symbioticfi/relay-contracts/issues",
   "license": "MIT",
   "author": "Symbiotic Team",
   "files": [
@@ -15,7 +15,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/symbioticfi/middleware-sdk.git"
+    "url": "https://github.com/symbioticfi/relay-contracts.git"
   },
   "keywords": [
     "solidity",
@@ -43,10 +43,11 @@
     "dotenv": "^16.5.0",
     "ethereum-cryptography": "^2.1.3",
     "ethers": "^6.11.1",
-    "@openzeppelin/contracts": "5.1.0",
-    "@openzeppelin/contracts-upgradeable": "5.1.0",
+    "@openzeppelin/contracts": "5.2.0",
+    "@openzeppelin/contracts-upgradeable": "5.2.0",
     "@symbioticfi/core": "1.0.1",
-    "@symbioticfi/rewards": "2.0.0"
+    "@symbioticfi/rewards": "2.0.0",
+    "@chainlink/contracts": "1.4.0"
   },
   "engines": {
     "node": ">=18.0.0"

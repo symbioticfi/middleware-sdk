@@ -3,14 +3,13 @@ pragma solidity ^0.8.25;
 
 import "forge-std/Test.sol";
 
-import {OperatorsJail} from "../../../../src/contracts/modules/voting-power/extensions/OperatorsJail.sol";
-import {VotingPowerProvider} from "../../../../src/contracts/modules/voting-power/VotingPowerProvider.sol";
+import {OperatorsJail} from "../../../../src/modules/voting-power/extensions/OperatorsJail.sol";
+import {VotingPowerProvider} from "../../../../src/modules/voting-power/VotingPowerProvider.sol";
 import {NoPermissionManager} from "../../../../test/mocks/NoPermissionManager.sol";
-import {EqualStakeVPCalc} from
-    "../../../../src/contracts/modules/voting-power/common/voting-power-calc/EqualStakeVPCalc.sol";
+import {EqualStakeVPCalc} from "../../../../src/modules/voting-power/common/voting-power-calc/EqualStakeVPCalc.sol";
 
-import {MultiToken} from "../../../../src/contracts/modules/voting-power/extensions/MultiToken.sol";
-import {OperatorVaults} from "../../../../src/contracts/modules/voting-power/extensions/OperatorVaults.sol";
+import {MultiToken} from "../../../../src/modules/voting-power/extensions/MultiToken.sol";
+import {OperatorVaults} from "../../../../src/modules/voting-power/extensions/OperatorVaults.sol";
 import {INetworkManager} from "../../../../src/interfaces/modules/base/INetworkManager.sol";
 import {IOperatorsJail} from "../../../../src/interfaces/modules/voting-power/extensions/IOperatorsJail.sol";
 import {IVotingPowerProvider} from "../../../../src/interfaces/modules/voting-power/IVotingPowerProvider.sol";
@@ -25,8 +24,6 @@ contract TestOperatorsJail is OperatorsJail, NoPermissionManager, EqualStakeVPCa
         IVotingPowerProvider.VotingPowerProviderInitParams memory votingPowerProviderInit
     ) external initializer {
         __VotingPowerProvider_init(votingPowerProviderInit);
-        __OperatorVaults_init();
-        __OperatorsJail_init();
     }
 
     function _registerOperatorImpl(
@@ -47,7 +44,7 @@ contract OperatorsJailTest is InitSetupTest {
         jailOps = new TestOperatorsJail(address(symbioticCore.operatorRegistry), address(symbioticCore.vaultFactory));
 
         INetworkManager.NetworkManagerInitParams memory netInit =
-            INetworkManager.NetworkManagerInitParams({network: vars.network.addr, subnetworkID: IDENTIFIER});
+            INetworkManager.NetworkManagerInitParams({network: vars.network.addr, subnetworkId: IDENTIFIER});
 
         IVotingPowerProvider.VotingPowerProviderInitParams memory votingPowerProviderInit = IVotingPowerProvider
             .VotingPowerProviderInitParams({
@@ -75,6 +72,8 @@ contract OperatorsJailTest is InitSetupTest {
 
         assertTrue(jailOps.isOperatorRegistered(operator1));
 
+        vm.expectRevert(IOperatorsJail.OperatorsJail_InvalidDuration.selector);
+        jailOps.jailOperator(operator1, 0);
         jailOps.jailOperator(operator1, jailDuration);
 
         assertTrue(jailOps.isOperatorJailed(operator1));

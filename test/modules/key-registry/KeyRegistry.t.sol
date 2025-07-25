@@ -3,12 +3,12 @@ pragma solidity ^0.8.25;
 
 import "forge-std/Test.sol";
 
-import {KeyRegistry} from "../../../src/contracts/modules/key-registry/KeyRegistry.sol";
+import {KeyRegistry} from "../../../src/modules/key-registry/KeyRegistry.sol";
 import {IKeyRegistry} from "../../../src/interfaces/modules/key-registry/IKeyRegistry.sol";
 
-import {KeyBlsBn254} from "../../../src/contracts/libraries/keys/KeyBlsBn254.sol";
-import {KeyEcdsaSecp256k1} from "../../../src/contracts/libraries/keys/KeyEcdsaSecp256k1.sol";
-import {BN254} from "../../../src/contracts/libraries/utils/BN254.sol";
+import {KeyBlsBn254} from "../../../src/libraries/keys/KeyBlsBn254.sol";
+import {KeyEcdsaSecp256k1} from "../../../src/libraries/keys/KeyEcdsaSecp256k1.sol";
+import {BN254} from "../../../src/libraries/utils/BN254.sol";
 import {BN254G2} from "../../helpers/BN254G2.sol";
 import {ECDSA} from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import {
@@ -16,7 +16,7 @@ import {
 } from "../../../src/interfaces/modules/key-registry/IKeyRegistry.sol";
 
 import {IOzEIP712} from "../../../src/interfaces/modules/base/IOzEIP712.sol";
-import {KeyTags} from "../../../src/contracts/libraries/utils/KeyTags.sol";
+import {KeyTags} from "../../../src/libraries/utils/KeyTags.sol";
 
 import {KeyRegistryWithKey64, KEY_TYPE_KEY64} from "../../mocks/KeyRegistryWithKey64.sol";
 
@@ -29,12 +29,8 @@ contract TestKeyRegistry is KeyRegistryWithKey64 {
         );
     }
 
-    function getKeyTagsAt(
-        address operator,
-        uint48 timestamp,
-        bytes memory hint
-    ) public view virtual returns (uint8[] memory) {
-        return _getKeyTagsAt(operator, timestamp, hint);
+    function getKeyTagsAt(address operator, uint48 timestamp) public view virtual returns (uint8[] memory) {
+        return _getKeyTagsAt(operator, timestamp);
     }
 
     function getKeyTags(
@@ -95,22 +91,21 @@ contract KeyRegistryTest is Test {
         bytes memory storedKey = keyRegistry.getKey(ecdsaUser, KEY_TYPE_ECDSA_SECP256K1.getKeyTag(0));
         assertEq(keccak256(storedKey), keccak256(key1Bytes), "ECDSA Key mismatch");
 
-        bytes memory storedKey2 = keyRegistry.getKeyAt(
-            ecdsaUser, KEY_TYPE_ECDSA_SECP256K1.getKeyTag(0), uint48(vm.getBlockTimestamp()), new bytes(0)
-        );
+        bytes memory storedKey2 =
+            keyRegistry.getKeyAt(ecdsaUser, KEY_TYPE_ECDSA_SECP256K1.getKeyTag(0), uint48(vm.getBlockTimestamp()));
         assertEq(keccak256(storedKey2), keccak256(key1Bytes), "ECDSA Key mismatch");
 
         vm.expectRevert(IKeyRegistry.KeyRegistry_InvalidKeyType.selector);
         keyRegistry.getKey(ecdsaUser, uint8(7).getKeyTag(0));
 
         vm.expectRevert(IKeyRegistry.KeyRegistry_InvalidKeyType.selector);
-        keyRegistry.getKeyAt(ecdsaUser, uint8(7).getKeyTag(0), uint48(vm.getBlockTimestamp()), new bytes(0));
+        keyRegistry.getKeyAt(ecdsaUser, uint8(7).getKeyTag(0), uint48(vm.getBlockTimestamp()));
 
         uint8[] memory keyTags = keyRegistry.getKeyTags(ecdsaUser);
         assertEq(keyTags.length, 1, "Should have 1 key tag");
         assertEq(keyTags[0], KEY_TYPE_ECDSA_SECP256K1.getKeyTag(0), "Key tag mismatch");
 
-        uint8[] memory keyTagsAt = keyRegistry.getKeyTagsAt(ecdsaUser, uint48(vm.getBlockTimestamp()), new bytes(0));
+        uint8[] memory keyTagsAt = keyRegistry.getKeyTagsAt(ecdsaUser, uint48(vm.getBlockTimestamp()));
         assertEq(keyTagsAt.length, 1, "Should have 1 key tag");
         assertEq(keyTagsAt[0], KEY_TYPE_ECDSA_SECP256K1.getKeyTag(0), "Key tag mismatch");
     }
@@ -147,22 +142,21 @@ contract KeyRegistryTest is Test {
         bytes memory storedKey = keyRegistry.getKey(ecdsaUser, KEY_TYPE_BLS_BN254.getKeyTag(15));
         assertEq(keccak256(storedKey), keccak256(key0Bytes), "BLS Key mismatch");
 
-        bytes memory storedKey2 = keyRegistry.getKeyAt(
-            ecdsaUser, KEY_TYPE_BLS_BN254.getKeyTag(15), uint48(vm.getBlockTimestamp()), new bytes(0)
-        );
+        bytes memory storedKey2 =
+            keyRegistry.getKeyAt(ecdsaUser, KEY_TYPE_BLS_BN254.getKeyTag(15), uint48(vm.getBlockTimestamp()));
         assertEq(keccak256(storedKey2), keccak256(key0Bytes), "BLS Key mismatch");
 
         vm.expectRevert(IKeyRegistry.KeyRegistry_InvalidKeyType.selector);
         keyRegistry.getKey(ecdsaUser, uint8(7).getKeyTag(15));
 
         vm.expectRevert(IKeyRegistry.KeyRegistry_InvalidKeyType.selector);
-        keyRegistry.getKeyAt(ecdsaUser, uint8(7).getKeyTag(15), uint48(vm.getBlockTimestamp()), new bytes(0));
+        keyRegistry.getKeyAt(ecdsaUser, uint8(7).getKeyTag(15), uint48(vm.getBlockTimestamp()));
 
         uint8[] memory keyTags = keyRegistry.getKeyTags(ecdsaUser);
         assertEq(keyTags.length, 1, "Should have 1 key tag");
         assertEq(keyTags[0], KEY_TYPE_BLS_BN254.getKeyTag(15), "Key tag mismatch");
 
-        uint8[] memory keyTagsAt = keyRegistry.getKeyTagsAt(ecdsaUser, uint48(vm.getBlockTimestamp()), new bytes(0));
+        uint8[] memory keyTagsAt = keyRegistry.getKeyTagsAt(ecdsaUser, uint48(vm.getBlockTimestamp()));
         assertEq(keyTagsAt.length, 1, "Should have 1 key tag");
         assertEq(keyTagsAt[0], KEY_TYPE_BLS_BN254.getKeyTag(15), "Key tag mismatch");
     }
@@ -341,26 +335,20 @@ contract KeyRegistryTest is Test {
         uint48 t2 = uint48(vm.getBlockTimestamp());
         _registerSimpleECDSA(ecdsaUser, ecdsaUserPrivateKey + 1, 1);
 
-        IKeyRegistry.Key[] memory keysAtT1 = keyRegistry.getKeysAt(ecdsaUser, t1, "");
+        IKeyRegistry.Key[] memory keysAtT1 = keyRegistry.getKeysAt(ecdsaUser, t1);
         assertEq(keysAtT1.length, 1, "Should have only 1 key at time t1");
-        IKeyRegistry.Key[] memory keysAtT1_ = keyRegistry.getKeysAt(
-            ecdsaUser,
-            t1,
-            abi.encode(IKeyRegistry.OperatorKeysHints({keyHints: new bytes[](0), keyTagsHint: new bytes(0)}))
-        );
-        assertEq(abi.encode(keysAtT1), abi.encode(keysAtT1_));
 
         IKeyRegistry.Key[] memory keysNow = keyRegistry.getKeys(ecdsaUser);
         assertEq(keysNow.length, 2, "Should have 2 keys in the latest state");
 
-        IKeyRegistry.Key[] memory keysAtT2 = keyRegistry.getKeysAt(ecdsaUser, t2, "");
+        IKeyRegistry.Key[] memory keysAtT2 = keyRegistry.getKeysAt(ecdsaUser, t2);
         assertEq(keysAtT2.length, 2, "2 keys at time t2");
 
-        uint8[] memory keyTagsAtT1 = keyRegistry.getKeyTagsAt(ecdsaUser, t1, "");
+        uint8[] memory keyTagsAtT1 = keyRegistry.getKeyTagsAt(ecdsaUser, t1);
         assertEq(keyTagsAtT1.length, 1, "Should have only 1 key tag at time t1");
         assertEq(keyTagsAtT1[0], KEY_TYPE_ECDSA_SECP256K1.getKeyTag(0), "Key tag mismatch");
 
-        uint8[] memory keyTagsAtT2 = keyRegistry.getKeyTagsAt(ecdsaUser, t2, "");
+        uint8[] memory keyTagsAtT2 = keyRegistry.getKeyTagsAt(ecdsaUser, t2);
         assertEq(keyTagsAtT2.length, 2, "Should have 2 key tags at time t2");
         assertEq(keyTagsAtT2[0], KEY_TYPE_ECDSA_SECP256K1.getKeyTag(0), "Key tag mismatch");
         assertEq(keyTagsAtT2[1], KEY_TYPE_ECDSA_SECP256K1.getKeyTag(1), "Key tag mismatch");
@@ -395,20 +383,20 @@ contract KeyRegistryTest is Test {
         assertEq(storedKey, key1Bytes, "KEY64 Key mismatch");
 
         bytes memory storedKey2 =
-            keyRegistry.getKeyAt(ecdsaUser, KEY_TYPE_KEY64.getKeyTag(0), uint48(vm.getBlockTimestamp()), new bytes(0));
+            keyRegistry.getKeyAt(ecdsaUser, KEY_TYPE_KEY64.getKeyTag(0), uint48(vm.getBlockTimestamp()));
         assertEq(storedKey2, key1Bytes, "KEY64 Key mismatch");
 
         vm.expectRevert(IKeyRegistry.KeyRegistry_InvalidKeyType.selector);
         keyRegistry.getKey(ecdsaUser, uint8(7).getKeyTag(0));
 
         vm.expectRevert(IKeyRegistry.KeyRegistry_InvalidKeyType.selector);
-        keyRegistry.getKeyAt(ecdsaUser, uint8(7).getKeyTag(0), uint48(vm.getBlockTimestamp()), new bytes(0));
+        keyRegistry.getKeyAt(ecdsaUser, uint8(7).getKeyTag(0), uint48(vm.getBlockTimestamp()));
 
         uint8[] memory keyTags = keyRegistry.getKeyTags(ecdsaUser);
         assertEq(keyTags.length, 1, "Should have 1 key tag");
         assertEq(keyTags[0], KEY_TYPE_KEY64.getKeyTag(0), "Key tag mismatch");
 
-        uint8[] memory keyTagsAt = keyRegistry.getKeyTagsAt(ecdsaUser, uint48(vm.getBlockTimestamp()), new bytes(0));
+        uint8[] memory keyTagsAt = keyRegistry.getKeyTagsAt(ecdsaUser, uint48(vm.getBlockTimestamp()));
         assertEq(keyTagsAt.length, 1, "Should have 1 key tag");
         assertEq(keyTagsAt[0], KEY_TYPE_KEY64.getKeyTag(0), "Key tag mismatch");
     }

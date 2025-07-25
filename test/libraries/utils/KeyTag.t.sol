@@ -2,7 +2,7 @@
 pragma solidity ^0.8.25;
 
 import "forge-std/Test.sol";
-import {KeyTags} from "../../../src/contracts/libraries/utils/KeyTags.sol";
+import {KeyTags} from "../../../src/libraries/utils/KeyTags.sol";
 
 contract KeyTagTest is Test {
     using KeyTags for uint128;
@@ -22,7 +22,7 @@ contract KeyTagTest is Test {
         uint8 type_ = 8;
         uint8 identifier = 2;
 
-        vm.expectRevert(KeyTags.KeyTags_InvalidKeyType.selector);
+        vm.expectRevert(KeyTags.InvalidKeyType.selector);
         this.getKeyTag(type_, identifier);
     }
 
@@ -34,7 +34,7 @@ contract KeyTagTest is Test {
         uint8 type_ = 3;
         uint8 identifier = 16;
 
-        vm.expectRevert(KeyTags.KeyTags_InvalidKeyTag.selector);
+        vm.expectRevert(KeyTags.InvalidKeyTag.selector);
         this.getKeyTag(type_, identifier);
     }
 
@@ -55,7 +55,7 @@ contract KeyTagTest is Test {
     function test_GetTypeRevertWhenTooLarge() public {
         uint8 invalid = 128;
 
-        vm.expectRevert(KeyTags.KeyTags_InvalidKeyTag.selector);
+        vm.expectRevert(KeyTags.InvalidKeyTag.selector);
         this.getType(invalid);
     }
 
@@ -68,7 +68,7 @@ contract KeyTagTest is Test {
     function test_GetTagRevertWhenTooLarge() public {
         uint8 invalid = 130;
 
-        vm.expectRevert(KeyTags.KeyTags_InvalidKeyTag.selector);
+        vm.expectRevert(KeyTags.InvalidKeyTag.selector);
         this.getTag(invalid);
     }
 
@@ -137,7 +137,7 @@ contract KeyTagTest is Test {
         tags[1] = 2;
         tags[2] = 5;
 
-        vm.expectRevert(KeyTags.KeyTags_Duplicate.selector);
+        vm.expectRevert(KeyTags.DuplicateKeyTag.selector);
         this.serialize(tags);
     }
 

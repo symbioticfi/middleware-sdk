@@ -371,4 +371,27 @@ contract NetworkTest is MasterSetupTest {
 
         assertEq(myNetwork.getMinDelay(address(this), abi.encodeWithSelector(FOO_SEL)), newSelectorDelay);
     }
+
+    function test_EthTransfer() public {
+        uint256 amount = 100 ether;
+
+        deal(address(myNetwork), amount);
+
+        vm.prank(proposer);
+        myNetwork.schedule(address(1), amount, new bytes(0), bytes32(0), bytes32("salt42"), GLOBAL_MIN_DELAY);
+
+        vm.prank(proposer);
+        vm.expectRevert();
+        myNetwork.schedule(address(1), amount, new bytes(0), bytes32(0), bytes32("salt42"), GLOBAL_MIN_DELAY);
+
+        uint256 balanceBefore = address(1).balance;
+
+        vm.warp(vm.getBlockTimestamp() + GLOBAL_MIN_DELAY);
+        vm.prank(executor);
+        myNetwork.execute(address(1), amount, new bytes(0), bytes32(0), bytes32("salt42"));
+
+        assertEq(address(1).balance - balanceBefore, amount);
+
+        assertEq(myNetwork.getMinDelay(address(1), new bytes(0)), GLOBAL_MIN_DELAY);
+    }
 }

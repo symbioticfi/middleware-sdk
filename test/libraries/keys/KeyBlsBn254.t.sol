@@ -3,8 +3,8 @@ pragma solidity ^0.8.25;
 
 import {Test, console2} from "forge-std/Test.sol";
 
-import {KeyBlsBn254} from "../../../src/contracts/libraries/keys/KeyBlsBn254.sol";
-import {BN254} from "../../../src/contracts/libraries/utils/BN254.sol";
+import {KeyBlsBn254} from "../../../src/libraries/keys/KeyBlsBn254.sol";
+import {BN254} from "../../../src/libraries/utils/BN254.sol";
 
 import {KeyBlsBn254Mock} from "../../mocks/KeyBlsBn254Mock.sol";
 
